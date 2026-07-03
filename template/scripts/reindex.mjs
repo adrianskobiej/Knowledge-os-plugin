@@ -11,11 +11,11 @@ import { join, relative, sep, dirname, basename, extname } from 'node:path';
 import { createHash } from 'node:crypto';
 
 const ROOT = process.cwd();
-const CONTENT_DIRS = ['departments', 'projects', 'people', 'concepts', 'skills', 'meetings', 'tasks'];
+const CONTENT_DIRS = ['departments', 'projects', 'people', 'concepts', 'skills', 'meetings', 'tasks', 'journal'];
 // OKF (Open Knowledge Format) requires a `type` on every concept. We honor an explicit
 // `type:` in frontmatter and otherwise derive a sensible default from the zone, so every
 // article is OKF-conformant without per-file edits.
-const ZONE_TYPE = { projects: 'Project', skills: 'Skill', people: 'Person', meetings: 'Meeting', concepts: 'Concept', departments: 'Department', tasks: 'Task' };
+const ZONE_TYPE = { projects: 'Project', skills: 'Skill', people: 'Person', meetings: 'Meeting', concepts: 'Concept', departments: 'Department', tasks: 'Task', journal: 'Journal' };
 // Task workflow states (tasks/ zone). `done` tasks leave the board's active columns;
 // `status: archived` (shared lifecycle) removes a task from indexes entirely.
 const TASK_STATES = ['todo', 'doing', 'blocked', 'done'];
@@ -207,10 +207,12 @@ for (const file of files) {
     authority: meta.authority || '',
     author: meta.author || '',
     // Task fields (tasks/ zone; harmless empty elsewhere) — power BOARD.md + the viewer board.
-    assignee: meta.assignee || '',
+    // assignee accepts one slug or a list ([anna, adrian]) — several people can own one task.
+    assignees: Array.isArray(meta.assignee) ? meta.assignee : (meta.assignee ? [meta.assignee] : []),
     project: meta.project || '',
     due: meta.due || '',
     priority: meta.priority || '',
+    recur: meta.recur || '',   // daily | weekly | monthly — recurring tasks (🔁 on the board)
     links: [...new Set(wikilinks)],
     _body: body,
   });
@@ -434,10 +436,11 @@ const DONE_SHOWN = 15;
 const taskLine = (t) => {
   const overdue = t.due && t.due < today && t.status !== 'done' ? ' ⏰**overdue**' : '';
   const bits = [
-    t.assignee ? `👤 ${t.assignee}` : '👤 _unassigned_',
+    t.assignees.length ? `👤 ${t.assignees.join(', ')}` : '👤 _unassigned_',
     t.project ? `📁 ${t.project}` : '',
     t.due ? `📅 ${t.due}${overdue}` : '',
     t.priority ? `⚡ ${t.priority}` : '',
+    t.recur ? `🔁 ${t.recur}` : '',
   ].filter(Boolean).join(' · ');
   return `- **[${t.title}](${t.path})** — ${bits}\n`;
 };
@@ -526,7 +529,7 @@ const data = {
     summary: a.summary, tags: a.tags, entities: a.entities, aka: a.aka,
     status: a.status, updated: a.updated,
     source: a.source, authority: a.authority, author: a.author,
-    assignee: a.assignee, project: a.project, due: a.due, priority: a.priority,
+    assignees: a.assignees, project: a.project, due: a.due, priority: a.priority, recur: a.recur,
     links: a.links, backlinks: backlinks[a.slug],
     html: mdToHtml(a._body, slugs),
   })),

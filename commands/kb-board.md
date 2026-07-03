@@ -10,8 +10,9 @@ Filter: `$ARGUMENTS` (a person, a project, a status, "overdue" — or nothing = 
 
 1. Read `BOARD.md` in the base (regenerate first if stale: `node scripts/reindex.mjs`).
 2. Render for the user **in their language**, adapted to their question — don't dump the raw file:
-   - *"what's on my plate?"* → only their tasks (match assignee to their roster slug), ⏰ overdue and
-     P1 first, then by due date.
+   - *"what's on my plate?"* / *"what is <person> working on?"* → only tasks where that person is
+     among the `assignee`(s) — a task may have several owners; show co-owners on each line. ⏰ overdue
+     and P1 first, then by due date.
    - *"tasks for <project>"* → only that project's columns.
    - *"what's overdue?"* → just the ⏰ items, with owners.
    - no filter → compact kanban: `📥 todo / 🔨 doing / 🚧 blocked` with owner + due per line, and a

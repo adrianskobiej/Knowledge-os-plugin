@@ -23,6 +23,7 @@ updated: 2026-06-30
 | "We had a meeting with \<client\>" (+ notes) | It saves decisions & action items |
 | "We're starting a new project \<name\>" | Short interview, project set up |
 | "Add a task / what's on my plate?" | Manages the team's kanban board |
+| "Let's do my check-in / goals for the month" | Runs your journaling rhythm (day/week/month) |
 | "Anything new from the team?" | Pulls the team's latest updates |
 | "How do I use this?" | Shows this guide |
 
@@ -39,6 +40,7 @@ all the company's knowledge. `GAPS.md` lists what's still incomplete or unverifi
 | `/kb-meeting [notes]` | Save a meeting: decisions + action items, client tagged |
 | `/kb-task [description]` | Add / assign / complete a task on the board |
 | `/kb-board [filter]` | Show the kanban (all, by person, by project, overdue) |
+| `/kb-journal [day\|week\|month-start\|month-end]` | Daily check-in, weekly plan, monthly goals & review |
 | `/kb-new-project [name]` | Onboard a new project (short interview) |
 | `/kb-sync` | Pull the team's latest updates |
 | `/kb-deploy` | Save & share your changes with the team |

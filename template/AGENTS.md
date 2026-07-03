@@ -124,7 +124,12 @@ SAME rules. Regardless of which agent you are:
 - **Task** (`/kb-task`): add / update / assign / complete a task — one small file per task in
   `tasks/`; the engine compiles `BOARD.md` (kanban). Full procedure: `tasks/BRIEF.md`.
 - **Board** (`/kb-board`): show the kanban — whole board or filtered by person/project/overdue.
-  To EXECUTE a task, read its project article first and respect the ⛔ non-goals; then mark it done.
+  Tasks can have SEVERAL owners (`assignee: [anna, adrian]`); "what is <person> working on?" matches
+  any task they co-own. To EXECUTE a task, read its project article first and respect the ⛔ non-goals;
+  then mark it done. Recurring tasks (`recur:`) roll forward instead of closing.
+- **Journal** (`/kb-journal`): the AI-journaling rhythm — daily check-in, weekly planning, monthly
+  goals (professional/private) & review. Offer the daily check-in once on the first conversation of
+  the day — ONLY if `features.journal` is on. Conventions: `journal/BRIEF.md`.
 
 ## Just talk — no commands required (intent routing)
 
@@ -138,6 +143,8 @@ When the user's words match an intent, run the matching procedure yourself:
 | recounts a call / "we met with <client>" / pastes meeting notes | offer **/kb-meeting** |
 | "add a task", "I'll do it tomorrow", an action item emerges | offer **/kb-task** |
 | "what's on my plate", "show the board", "what's overdue" | **/kb-board** |
+| "what is <person> working on?", "tasks of <person>" | **/kb-board** (filter by that person) |
+| "let's do my check-in", "podsumujmy dzień", "plan the week", "goals for the month" | **/kb-journal** |
 | "we're starting a project/engagement <name>" | offer **/kb-new-project** |
 | "anything new from the team?" | Sync |
 | "how do I use this?" / seems lost | **/kb-help** |
@@ -228,6 +235,14 @@ durable bits back — cheaply:
 - Keep **`now.md`** current — update it when the focus shifts.
 - One line in `wiki/log/log-<author>.md` per change. At the end of a working session, briefly
   propose what's worth persisting, then capture it on an OK.
+
+## Feature toggles (respect the company's choices)
+
+`knowledge.config.json` may carry `"features"`, e.g. `{ "journal": false, "goals": "professional" }`.
+Agents MUST respect these: never offer a disabled ritual (no daily check-ins if `journal: false`; no
+private-goals section if `goals: "professional"`). Set at onboarding, changeable anytime — when the
+user asks to turn something on/off, edit the config and confirm. Missing key = feature available but
+never pushed: offer once, back off if declined.
 
 ## Confidential knowledge — the repo IS the boundary
 

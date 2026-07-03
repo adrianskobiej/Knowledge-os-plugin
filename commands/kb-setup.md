@@ -51,6 +51,13 @@ missing tools (`node`/`git`/`gh`; macOS `brew install node gh`), then check `gh 
   knowledge" in `AGENTS.md`. Don't set it up unless they ask.)
 
 ## Phase 3 — Make it yours
+- **Rhythms on/off (NEW base, one question):** *"Want me to also run a light work rhythm — a daily
+  check-in (what got done, what blocked you), weekly planning and monthly goals? I can do all of it,
+  part of it, or none — and you can change your mind anytime."* Write the answer to
+  `knowledge.config.json` → `"features": { "journal": true|false, "goals": true|false|"professional" }`
+  (`"professional"` = goals without the private section). **Agents must respect these toggles** — never
+  offer a disabled ritual. On a JOIN, inherit the company's features; a person may ask to opt out
+  personally (note it in their people/ profile).
 - **Profile (both):** ask name + role → `people/<handle>.md` from `_templates/person.md` + add their git
   email → handle in `roster` (attribution).
 - **NEW only:** set `knowledge.config.json` (`company.name`, `slug`, `company.language`, `version` from

@@ -191,10 +191,11 @@
         const od = t.due && t.due < today && st !== 'done';
         html += '<div class="bcard' + (od ? ' overdue' : '') + '" onclick="location.hash=\'' + escapeHtml(t.slug) + '\'">'
           + '<div>' + escapeHtml(t.title) + '</div><small>'
-          + (t.assignee ? '👤 ' + escapeHtml(t.assignee) + ' ' : '')
+          + ((t.assignees || []).length ? '👤 ' + escapeHtml(t.assignees.join(', ')) + ' ' : '')
           + (t.project ? '📁 ' + escapeHtml(t.project) + ' ' : '')
           + (t.due ? '📅 ' + escapeHtml(t.due) + (od ? ' ⏰' : '') : '')
-          + (t.priority ? ' ⚡' + escapeHtml(t.priority) : '') + '</small></div>';
+          + (t.priority ? ' ⚡' + escapeHtml(t.priority) : '')
+          + (t.recur ? ' 🔁' + escapeHtml(t.recur) : '') + '</small></div>';
       }
       if (!col.length) html += '<small class="bempty">—</small>';
       html += '</div>';

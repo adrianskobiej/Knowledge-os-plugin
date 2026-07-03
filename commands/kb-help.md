@@ -14,6 +14,7 @@ Render this for the user **in their language**, short and friendly (adapt freely
 - *"We're starting a new project <name>"* → I'll ask a few questions and set it up.
 - *"Anything new from the team?"* → I'll pull the latest updates.
 - *"Add a task / what's on my plate?"* → I'll manage the team's task board (kanban).
+- *"Let's do my check-in / plan the week / goals for the month"* → I'll run your journaling rhythm.
 
 **Browse it yourself (no agent needed):** run `./kb` in the base folder — a visual browser of all the
 company's knowledge. `GAPS.md` lists what's still incomplete.
@@ -22,7 +23,7 @@ company's knowledge. `GAPS.md` lists what's still incomplete.
 keeps the whole company's memory sharp. I'll also offer it myself when I notice something worth keeping.
 
 **Power commands (optional, for when you want precision):** `/kb-query`, `/kb-find`, `/kb-ingest`,
-`/kb-meeting`, `/kb-task`, `/kb-board`, `/kb-new-project`, `/kb-sync`, `/kb-deploy`, `/kb-stats`, `/kb-lint`, `/kb-upgrade`.
+`/kb-meeting`, `/kb-task`, `/kb-board`, `/kb-journal`, `/kb-new-project`, `/kb-sync`, `/kb-deploy`, `/kb-stats`, `/kb-lint`, `/kb-upgrade`.
 
 End with one question: *"Want to try? Tell me something worth remembering, or ask me anything about
 the company."*

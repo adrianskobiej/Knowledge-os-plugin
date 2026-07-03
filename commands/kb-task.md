@@ -14,15 +14,18 @@ Input: `$ARGUMENTS`. Figure out the intent: **new task**, **status change** (don
 2. Infer from conversation (ask ONLY for what's missing, one short question): title (imperative),
    definition of done (= `summary`), `project` (match against `projects/` slugs — auto-detect from the
    current repo if you're inside a linked project), `assignee` (roster slug; default: the current user;
-   may be an agent's author slug if the user delegates it to you), optional `due` / `priority`.
+   may be a LIST `[anna, adrian]` when several people share the task, or an agent's author slug if the
+   user delegates it to you), optional `due` / `priority` / `recur` (daily|weekly|monthly).
 3. Write `tasks/<short-slug>.md` from `_templates/task.md` (in the base's content language) →
    `node scripts/reindex.mjs` (BOARD.md updates) → one line in `wiki/log/log-<author>.md`.
 4. Confirm in one line: *"Added to the board: <title> → <assignee>, <project><, due X>."*
 
 ## Status change / reassign / edit
 1. Find the task (grep `tasks/` by words from the user's phrasing; ambiguous → ask which one).
-2. Edit the file in place: `status:` (todo|doing|blocked|done), `assignee:`, `due:`, `priority:`;
-   bump `updated:`; append a dated line to `## Notes / progress` (e.g. "done — <one-line outcome>").
+2. Edit the file in place: `status:` (todo|doing|blocked|done), `assignee:` (one slug or a list),
+   `due:`, `priority:`; bump `updated:`; append a dated line to `## Notes / progress` (e.g. "done —
+   <one-line outcome>"). **Recurring task (`recur:`) completed?** Don't close it — add the done note,
+   bump `due` to the next day/week/month and keep `status: todo` (🔁 stays on the board).
 3. Reindex + one-line log. If the user asks you to DO the task: read its project article first and
    respect the ⛔ non-goals, do the work, then mark it done with the outcome note.
 

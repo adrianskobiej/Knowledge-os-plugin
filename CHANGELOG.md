@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.26.0
+
+- **Shared & recurring tasks** — `assignee:` accepts a list (`[anna, adrian]`) so several people can own one task; "what is <person> working on?" matches any co-owned task. New `recur: daily|weekly|monthly` — completing a recurring task rolls it to the next period (🔁 on the board) instead of closing it.
+- **AI journaling — `/kb-journal` + `journal/` zone.** A light rhythm the agent runs conversationally: **daily check-in** (what got done · blockers · one win · tomorrow's #1 — and it syncs the board: done→done, blockers→blocked, new work→offered as tasks), **weekly planning** (review + agree the top 3 → now.md & board), **monthly goals** (3–5, professional/private) and **month-end review** (achieved / not / carry-overs) written into one goals file per person per month. One file per person per entry — no merge conflicts. Best practices baked in: 3 short questions, specifics over adjectives, blockers are gold, never judge.
+- **Feature toggles** — onboarding asks once whether to run the rhythm; the answer lands in `knowledge.config.json` → `features` (`journal`, `goals` — incl. `"professional"` = no private section). Agents must respect toggles and can flip them anytime on request.
+
 ## 0.25.0
 
 - **Task board — the base is now a lightweight project manager.** New `tasks/` zone: one small file per task (`status: todo|doing|blocked|done`, `assignee`, `project`, `due`, `priority`) — many users can add/update concurrently with zero merge conflicts. The engine compiles **`BOARD.md`**, a bounded kanban (columns by status, open work grouped by project, ⏰ overdue flags, done capped at 15), linked from the root map with an open-task count.
