@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.24.0
+
+- **Instant context — agents land on the right knowledge without being told.** Three pieces: (1) the global awareness block now instructs every agent to read `CONTEXT.md`/`now.md` at session start and to **auto-match the current project** against `projects/` (grep the git remote URL / folder name against `resource:`/repo lines) and read its article FIRST — goals, status and hard ⛔ non-goals included; (2) new **`/kb-link-project`** wires a project repo to its article explicitly — an idempotent pointer block in the project's AGENTS.md/CLAUDE.md plus a bidirectional `resource:` link in the article; (3) the golden rule gains step 0 (project match) in `AGENTS.md`.
+
 ## 0.23.1
 
 - Test fix: `--stats` test now asserts relative to shipped starter content (the built-in guide article broke its hardcoded count in 0.23.0).

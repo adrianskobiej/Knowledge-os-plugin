@@ -145,6 +145,13 @@ function awarenessText(bases) {
 A personal/company knowledge base is available on this machine. Registered base(s):
 ${list}
 
+**Instant context — do this at the start of a working session:** read \`<base>/CONTEXT.md\` and
+\`<base>/now.md\` (who the owner is, goals, current focus). Then check whether the project you are
+working in is documented in the base: grep \`<base>/projects/\` for the project's git remote URL or
+folder name (articles carry \`resource:\`/repo lines). If it is, read that article FIRST — it holds the
+project's goal, status and the hard ⛔ non-goals for agents. Projects can be wired explicitly with
+\`/kb-link-project\` (adds a pointer block to the project's own agent instructions).
+
 The base stores ONLY distilled knowledge (decisions, processes, facts, people) as Markdown — it is NOT a project store. Never move, copy, or commit project source code or whole files into it; keep working in each project's own location and only save knowledge here.
 
 When the user asks about something that may be stored there, consult it: read \`<base>/INDEX.md\` first, then open only the relevant \`.md\` files (follow \`[[slug]]\` links) — never load the whole base. When the user shares durable, reusable knowledge worth keeping, distill it into a short \`.md\` article in the base and run \`node scripts/reindex.mjs\` there afterwards. Full rules live in \`<base>/AGENTS.md\`.

@@ -38,6 +38,10 @@ explicitly allowed. Only the knowledge zones are shared; stray files and the raw
 
 The base is built to stay fast even when it is very large. Navigate top-down:
 
+0. **Working inside a project?** Check whether it's documented here: grep `projects/` for the
+   project's git remote URL or folder name (articles carry `resource:`/repo lines) — or follow the
+   pointer block that `/kb-link-project` puts in the project's own AGENTS.md/CLAUDE.md. If matched,
+   read that article FIRST: it holds the goal, status, ✅ in-scope and the hard ⛔ non-goals.
 1. **`CONTEXT.md`** (+ **`now.md`**) — always read first: who the owner is, goals, active work,
    preferences, current focus. This is your standing context.
 2. **`INDEX.md` (root map)** — zones with counts + "Start here" + briefs. Do NOT expect every
