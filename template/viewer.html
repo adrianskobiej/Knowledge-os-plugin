@@ -110,6 +110,14 @@
       el.onclick = () => { location.hash = 'board'; };
       tree.appendChild(el);
     }
+    // Settings — pinned (what's enabled, engine version)
+    if (!f) {
+      const el = document.createElement('div');
+      el.className = 'item'; el.dataset.settings = '1';
+      el.innerHTML = '<div>⚙️ Settings</div><small>features · engine v' + escapeHtml(D.version || '?') + '</small>';
+      el.onclick = () => { location.hash = 'settings'; };
+      tree.appendChild(el);
+    }
     // Recently updated — only in the unfiltered view
     if (!f) {
       const recent = D.articles.filter(a => a.updated)
@@ -205,10 +213,36 @@
     document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', !!e.dataset.board));
     document.getElementById('main').scrollTop = 0;
   }
+  function showSettings() {
+    const c = document.getElementById('content');
+    const feats = D.features || {};
+    const label = v => v === undefined ? '➖ not set (available, never pushed)'
+      : v === false ? '❌ off'
+      : v === true ? '✅ on'
+      : '✅ ' + escapeHtml(String(v));
+    const zones = {};
+    for (const a of D.articles) { const z = a.path.split('/')[0]; zones[z] = (zones[z] || 0) + 1; }
+    let html = '<article><h1>⚙️ Settings</h1>';
+    html += '<div class="meta"><span class="chip">engine v' + escapeHtml(D.version || '?') + '</span>'
+      + '<span class="chip">' + escapeHtml((D.company && D.company.language) || '?') + '</span>'
+      + '<span class="chip">' + D.articles.length + ' articles</span></div>';
+    html += '<h2>Features</h2><table><thead><tr><th>Feature</th><th>State</th><th>What it does</th></tr></thead><tbody>'
+      + '<tr><td>journal</td><td>' + label(feats.journal) + '</td><td>Daily check-in, weekly planning (/kb-journal)</td></tr>'
+      + '<tr><td>goals</td><td>' + label(feats.goals) + '</td><td>Monthly goals &amp; review ("professional" = no private section)</td></tr>'
+      + '</tbody></table>';
+    html += '<blockquote>To change these, ask your assistant — e.g. "enable journaling", "turn off private goals" (/kb-settings). This viewer is read-only.</blockquote>';
+    html += '<h2>Zones in use</h2><table><thead><tr><th>Zone</th><th>Articles</th></tr></thead><tbody>'
+      + Object.keys(zones).sort().map(z => '<tr><td>' + escapeHtml(z) + '</td><td>' + zones[z] + '</td></tr>').join('')
+      + '</tbody></table></article>';
+    c.innerHTML = html;
+    document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', !!e.dataset.settings));
+    document.getElementById('main').scrollTop = 0;
+  }
   function route() {
     const raw = location.hash.slice(1);
     if (!raw) return;
     if (raw === 'board') showBoard();
+    else if (raw === 'settings') showSettings();
     else if (raw.startsWith('brief:')) showBrief(decodeURIComponent(raw.slice(6)));
     else show(decodeURIComponent(raw));
   }

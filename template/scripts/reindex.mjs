@@ -522,6 +522,10 @@ writeFileSync(join(ROOT, 'INDEX.md'), idx);
 // `config` is already loaded + validated above.
 const data = {
   company: config.company || { name: 'Knowledge base' },
+  // Feature toggles + base version — the viewer shows them (⚙️ Settings view);
+  // agents flip them via /kb-settings (edits knowledge.config.json).
+  features: config.features || {},
+  version: config.version || '',
   generatedAt: new Date().toISOString(),
   articles: articles.map(a => ({
     slug: a.slug, title: a.title, path: a.path, category: a.category,

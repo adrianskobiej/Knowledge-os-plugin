@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.27.0
+
+- **`/kb-settings` — turn features on/off anytime**, not just at onboarding: show current toggles, flip them conversationally ("enable journaling", "turn off private goals"); when enabling, the agent offers to start the ritual right away. If a user asks for something a disabled feature provides, agents offer to enable it instead of refusing.
+- **⚙️ Settings view in the viewer** — a pinned entry (like the task board) showing what's enabled (journal, goals), content language, engine version and zones in use, with a hint that the assistant changes these. `kb-data` now carries `features` + `version` from the config.
+
 ## 0.26.0
 
 - **Shared & recurring tasks** — `assignee:` accepts a list (`[anna, adrian]`) so several people can own one task; "what is <person> working on?" matches any co-owned task. New `recur: daily|weekly|monthly` — completing a recurring task rolls it to the next period (🔁 on the board) instead of closing it.

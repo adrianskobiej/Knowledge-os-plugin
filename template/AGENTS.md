@@ -145,6 +145,7 @@ When the user's words match an intent, run the matching procedure yourself:
 | "what's on my plate", "show the board", "what's overdue" | **/kb-board** |
 | "what is <person> working on?", "tasks of <person>" | **/kb-board** (filter by that person) |
 | "let's do my check-in", "podsumujmy dzień", "plan the week", "goals for the month" | **/kb-journal** |
+| "what's enabled?", "enable journaling", "turn off private goals" | **/kb-settings** |
 | "we're starting a project/engagement <name>" | offer **/kb-new-project** |
 | "anything new from the team?" | Sync |
 | "how do I use this?" / seems lost | **/kb-help** |
@@ -240,9 +241,11 @@ durable bits back — cheaply:
 
 `knowledge.config.json` may carry `"features"`, e.g. `{ "journal": false, "goals": "professional" }`.
 Agents MUST respect these: never offer a disabled ritual (no daily check-ins if `journal: false`; no
-private-goals section if `goals: "professional"`). Set at onboarding, changeable anytime — when the
-user asks to turn something on/off, edit the config and confirm. Missing key = feature available but
-never pushed: offer once, back off if declined.
+private-goals section if `goals: "professional"`). Set at onboarding, **changeable anytime via `/kb-settings`** (show current toggles, flip on request —
+when enabling, offer to start the ritual right away). Missing key = feature available but never
+pushed: offer once, back off if declined. If the user asks for something a disabled feature provides,
+say it is off and offer to enable it — never just refuse. The viewer shows the same state under
+**⚙️ Settings**.
 
 ## Confidential knowledge — the repo IS the boundary
 
