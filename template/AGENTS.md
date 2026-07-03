@@ -219,6 +219,25 @@ durable bits back — cheaply:
 - One line in `wiki/log/log-<author>.md` per change. At the end of a working session, briefly
   propose what's worth persisting, then capture it on an OK.
 
+## Confidential knowledge — the repo IS the boundary
+
+Git/GitHub access is per-**repository**; there is no folder-level secrecy inside a shared base.
+Anyone who can clone the base (and any agent running on their machine) can read ALL of it. So:
+
+- **Never put secrets in a shared base** — no passwords/keys/tokens, and no knowledge that not every
+  collaborator may see (salaries, board/M&A notes, legal disputes, personal data).
+- **Restricted knowledge = a separate base (its own repo).** Create it like any base (`/kb-init`,
+  e.g. `<company>-knowledge-leadership`) and grant GitHub access only to the right people (CEO,
+  board, HR). The machine registry supports many bases side by side: authorized people have both
+  bases registered; an employee's agent **physically cannot read** a base that isn't cloned on their
+  machine. Access control = GitHub repo permissions — auditable, revocable, standard.
+- **Cross-reference by title only.** In the shared base you may note *"details in the leadership
+  base"* — never paste restricted content across the boundary.
+- **When ingesting, triage first:** if material looks sensitive (salaries, legal, personal data,
+  strategy), ask which base it belongs to BEFORE writing anything.
+- A `confidential: true` frontmatter flag is **NOT protection** — anyone with the repo can read it.
+  Use it at most as a courtesy hint *inside* an already-restricted base.
+
 ## Identity, decisions & history (shared base)
 
 - Author from Git, no second source of truth: your author slug comes from `git config user.email` mapped via `roster` in `knowledge.config.json`. Stamp it as `author:` in each article you add, so the file's author matches the commit's author. If your email isn't in the roster, add it.

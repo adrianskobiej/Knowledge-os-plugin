@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.22.0
+
+- **Bounded facets at scale** — `INDEX-facets.md` no longer grows without limit: each tag/entity line lists the 40 most recently updated articles plus a "+N more (grep)" pointer. At a 10,000-article benchmark the file drops 1.8 MB → ~0.5 MB with every line bounded; reindex stays ~0.5 s, root map ~1 KB, zone pages ≤ ~30 KB, client lookup via grep ~0.1 s.
+- **Confidential knowledge — the repo IS the boundary** — new `AGENTS.md` section: git permissions are per-repository, so restricted knowledge (board, salaries, legal, personal data) lives in a **separate access-limited base** (created with the same `/kb-init` flow); an employee's agent physically cannot read a base that isn't cloned on their machine. Cross-reference by title only; `confidential: true` flags are explicitly NOT protection. `/kb-ingest` now triages sensitive material and asks which base it belongs to before writing; fixed step numbering.
+
 ## 0.21.0
 
 - **`/kb-meeting` — capture a meeting in one paste** — the user pastes notes/a transcript (or says two sentences); the agent distills decisions + action items into `meetings/`, tags the client in `entities:` (powering "show me everything about <client>" via facets), ripples decisions to `D-NNN` and focus to `now.md`, and offers itself proactively whenever a meeting comes up in conversation.

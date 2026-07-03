@@ -9,6 +9,9 @@ allowed-tools: Bash, Read, Write, Edit
 Arguments: `$ARGUMENTS` (e.g. `acme` or `acme git@github.com:acme/knowledge.git`)
 
 Goal: prepare an independent company knowledge base in `~/knowledge/<slug>`. Each company = a separate repo.
+(The same flow also creates a **restricted base** — e.g. `<company>-knowledge-leadership` for
+CEO/board/HR-only knowledge: just limit the GitHub repo access. Access control = repo boundary;
+see "Confidential knowledge" in `AGENTS.md`.)
 
 Steps:
 0. **Detect first.** Before creating anything, check whether a base already exists on this machine —
