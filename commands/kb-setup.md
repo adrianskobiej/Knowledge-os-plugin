@@ -60,5 +60,6 @@ Open the viewer: `open ~/knowledge/<slug>/viewer.html`. Then, **only if they're 
 "get to know you" (skippable, a few questions max):
 - NEW (owner): goals · what they're building (offer `/kb-new-project` per project) · this week's focus (`now.md`).
 - JOIN (employee): just enrich their own profile (expertise, how they work) — don't touch company `CONTEXT`/`now`.
-Then teach the essentials in one breath: ask → `/kb-query`, find → `/kb-find`, save → `/kb-ingest`
-(and `/kb-new-project`, `/kb-sync`). They can add more anytime; `GAPS.md` lists what's left. Congratulate + summarize.
+Then teach ONE thing: *"You don't need commands — just talk to me: ask about anything, say 'save this',
+or paste meeting notes. If you ever feel lost, say 'how do I use this?'"* (that's `/kb-help`; the full
+command list lives there). `GAPS.md` lists what's left to fill. Congratulate + summarize.

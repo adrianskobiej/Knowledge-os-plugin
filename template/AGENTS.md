@@ -114,6 +114,25 @@ SAME rules. Regardless of which agent you are:
   links, orphans, duplicates, protected-quote signals.
 - **Sync** (`/kb-sync`): `git pull --rebase --autostash` → reindex (integrates teammates' work without losing yours).
 - **Deploy** (`/kb-deploy`): reindex --lint → `git add -A` → commit → `git pull --rebase --autostash` → push.
+- **Meeting** (`/kb-meeting`): paste notes/transcript → distill decisions + action items into
+  `meetings/`, tag the client in `entities:`, reindex, log.
+- **Help** (`/kb-help`): one-screen, plain-language cheat sheet in the user's language.
+
+## Just talk — no commands required (intent routing)
+
+Users should NOT have to learn commands — the commands are shortcuts for you, not homework for them.
+When the user's words match an intent, run the matching procedure yourself:
+
+| The user says (any phrasing, any language) | You run |
+|---|---|
+| "what do we know about X" / "how do we do Y" | Query / Find |
+| "remember this", "save this", pastes a doc/note | Add knowledge (dedup first) |
+| recounts a call / "we met with <client>" / pastes meeting notes | offer **/kb-meeting** |
+| "we're starting a project/engagement <name>" | offer **/kb-new-project** |
+| "anything new from the team?" | Sync |
+| "how do I use this?" / seems lost | **/kb-help** |
+
+Offer once, in one sentence; don't nag. The goal: using the base = a 30-second conversation.
 
 ## Engine commands (work in every tool)
 
@@ -193,7 +212,9 @@ first. This keeps it de-duplicated and trustworthy even with many contributors.
 The base's edge over a memoryless chat is that it remembers. As you work WITH the owner, write the
 durable bits back — cheaply:
 - New durable knowledge → refine the relevant article IN PLACE (don't append a changelog).
-- A meeting with outcomes → `meetings/`; a decision that changes how we work → `D-NNN`.
+- A meeting with outcomes → `meetings/` (offer `/kb-meeting`); a decision that changes how we work → `D-NNN`.
+- **Tag clients/companies/products in `entities:`** wherever they're discussed — that's what powers
+  "show me everything about <client>" later (facets / `/kb-find`).
 - Keep **`now.md`** current — update it when the focus shifts.
 - One line in `wiki/log/log-<author>.md` per change. At the end of a working session, briefly
   propose what's worth persisting, then capture it on an OK.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.21.0
+
+- **`/kb-meeting` — capture a meeting in one paste** — the user pastes notes/a transcript (or says two sentences); the agent distills decisions + action items into `meetings/`, tags the client in `entities:` (powering "show me everything about <client>" via facets), ripples decisions to `D-NNN` and focus to `now.md`, and offers itself proactively whenever a meeting comes up in conversation.
+- **Just talk — intent routing** — users no longer need to learn commands: `AGENTS.md` maps natural phrasings (any language) to procedures — ask → query/find, "save this" → ingest, meeting notes → kb-meeting, "new project" → kb-new-project, "anything new?" → sync, "how do I use this?" → kb-help. Commands remain as optional shortcuts.
+- **`/kb-help`** — a friendly one-screen cheat sheet rendered in the user's language; onboarding now teaches exactly one thing ("just talk to me") instead of a command list.
+- **Capture loop** now explicitly says to tag clients/companies/products in `entities:` wherever discussed.
+
 ## 0.20.0
 
 - **Engine upgrade path — `/kb-upgrade`** — a base keeps a copy of the engine from when it was created and used to stay there forever. The new command syncs the engine files (`scripts/reindex.mjs`, `viewer.html`, `kb`) from the installed plugin into a base, appends any newly required `.gitignore` lines, bumps `version` in `knowledge.config.json`, verifies with a reindex, and commits — company content, config, templates and `AGENTS.md` customizations are never touched. Refuses to downgrade; requires a clean git tree so the upgrade is one revertible commit.
