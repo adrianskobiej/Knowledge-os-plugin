@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.23.1
+
+- Test fix: `--stats` test now asserts relative to shipped starter content (the built-in guide article broke its hardcoded count in 0.23.0).
+
 ## 0.23.0
 
 - **Built-in user guide in every base** — the template now ships `concepts/how-to-use-this-base.md`: the "just talk" table, every /kb-* command explained, the `./kb` viewer, and where sensitive knowledge belongs. New bases are never empty and the guide is searchable + visible in the viewer (aka: help, manual, cheat sheet).

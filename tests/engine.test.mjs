@@ -110,7 +110,11 @@ test('--stats reports sections, authors and totals (writes nothing)', () => {
   assert.match(out, /By section:/);
   assert.match(out, /By author:/);
   assert.match(out, /adrian: 1/);
-  assert.match(out, /Totals: 1 articles/);
+  // The template ships built-in articles (e.g. the user guide, author "knowledge-os") —
+  // assert relative to that so shipping more starter content never breaks this test.
+  const totals = Number((out.match(/Totals: (\d+) articles/) || [])[1]);
+  assert.ok(totals >= 1, 'totals line present and counts at least the created article');
+  assert.match(out, /knowledge-os: 1/);
 });
 
 test('--lint flags stale articles and invalid config', () => {
