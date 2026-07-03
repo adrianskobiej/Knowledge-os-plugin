@@ -1,6 +1,6 @@
 {
   "name": "knowledge-os",
-  "version": "0.19.0",
+  "version": "0.20.0",
   "description": "OKF-compatible company knowledge base: Markdown as the source of truth + an offline HTML viewer. Hierarchical, scale-ready index with facets and search-by-meaning, plus always-on core context (CONTEXT.md/now.md). /kb-* commands to create, sync, ingest, query, find, onboard projects and deploy, with built-in agent procedures (NEW/JOIN onboarding, dedup-before-add, capture loop). Zones for projects, skills, people, meetings & concepts. Tool-agnostic (Claude Code, Codex, Antigravity).",
   "license": "MIT",
   "author": { "name": "Adrian Skobiej" },

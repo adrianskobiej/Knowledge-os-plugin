@@ -168,18 +168,33 @@ function injectAwareness(file, text) {
 //   2) the ~/knowledge/<slug>/ convention (dirs with knowledge.config.json)
 // Prints JSON so the agent can branch reliably. Writes nothing.
 if (process.argv.includes('--list')) {
+  // Plugin version — so agents can flag bases whose engine copy is behind (see /kb-upgrade).
+  let pluginVersion = '';
+  try { pluginVersion = JSON.parse(readFileSync(join(HERE, '.claude-plugin', 'plugin.json'), 'utf8')).version || ''; } catch {}
+  const semverLt = (a, b) => { // true if a < b (loose semver: missing parts = 0)
+    const pa = String(a).split('.').map(n => parseInt(n, 10) || 0);
+    const pb = String(b).split('.').map(n => parseInt(n, 10) || 0);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+      if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) < (pb[i] || 0);
+    }
+    return false;
+  };
   const registry = loadRegistry();
   const discovered = discoverBases();
   const seen = new Set();
   const bases = [...registry, ...discovered].filter(p => (seen.has(p) ? false : seen.add(p)))
     .map(p => {
-      let name = '', slug = '';
-      try { const c = JSON.parse(readFileSync(join(p, 'knowledge.config.json'), 'utf8')); name = c.company?.name || ''; slug = c.company?.slug || ''; } catch {}
-      return { path: p, name, slug, exists: existsSync(join(p, 'knowledge.config.json')) };
+      let name = '', slug = '', version = '';
+      try { const c = JSON.parse(readFileSync(join(p, 'knowledge.config.json'), 'utf8')); name = c.company?.name || ''; slug = c.company?.slug || ''; version = c.version || ''; } catch {}
+      return {
+        path: p, name, slug, version,
+        exists: existsSync(join(p, 'knowledge.config.json')),
+        outdated: Boolean(pluginVersion && version && semverLt(version, pluginVersion)),
+      };
     });
   const toolsDetected = Object.keys(TOOLS).filter(t => TOOLS[t].detect());
   const adapters = Object.fromEntries(Object.keys(TOOLS).map(t => [t, existsSync(TOOLS[t].dest)]));
-  console.log(JSON.stringify({ found: bases.length > 0, bases, toolsDetected, adaptersInstalled: adapters, registryFile: REG_FILE }, null, 2));
+  console.log(JSON.stringify({ found: bases.length > 0, pluginVersion, bases, toolsDetected, adaptersInstalled: adapters, registryFile: REG_FILE }, null, 2));
   process.exit(0);
 }
 

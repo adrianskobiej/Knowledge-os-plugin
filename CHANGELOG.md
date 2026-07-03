@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.20.0
+
+- **Engine upgrade path — `/kb-upgrade`** — a base keeps a copy of the engine from when it was created and used to stay there forever. The new command syncs the engine files (`scripts/reindex.mjs`, `viewer.html`, `kb`) from the installed plugin into a base, appends any newly required `.gitignore` lines, bumps `version` in `knowledge.config.json`, verifies with a reindex, and commits — company content, config, templates and `AGENTS.md` customizations are never touched. Refuses to downgrade; requires a clean git tree so the upgrade is one revertible commit.
+- **`install.mjs --list` reports versions** — each detected base now includes its `version` plus an `outdated` flag against the installed `pluginVersion`, so agents can proactively offer `/kb-upgrade` (e.g. during setup on another machine).
+
 ## 0.19.0
 
 - **Simpler onboarding** — /kb-setup consolidated from 8 steps into 4 clear phases (figure out the situation, get connected, make it yours, get going), with an explicit up-front summary of what the user actually does (~2-3 questions: a link or company+language, a login, and their name/role). Same capability (detect-first, NEW vs JOIN, GitHub account guidance, employee join, optional conversational onboarding) — less friction and less to get wrong. Joining a company that already uses the base is the minimal path: paste link -> log in -> name/role.

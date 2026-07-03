@@ -129,6 +129,11 @@ After every change to `.md` articles, run `node scripts/reindex.mjs` so `INDEX.m
 viewer stay fresh. (Claude does this automatically via a hook; other tools — via the git
 hooks from `--install-git-hook`, or manually.)
 
+**Engine upgrades:** a base keeps a COPY of the engine from when it was created. After the
+knowledge-os plugin updates, run `/kb-upgrade` — it syncs the engine files
+(`scripts/reindex.mjs`, `viewer.html`, `kb`) and bumps `version` in `knowledge.config.json`;
+company content and customizations are never touched.
+
 ## Before adding: dedup & update check (ALWAYS, before any new entry)
 
 Never blind-add. Before writing a new entry — or a new fact into an existing one — check the base
