@@ -45,6 +45,10 @@ missing tools (`node`/`git`/`gh`; macOS `brew install node gh`), then check `gh 
   (`${CLAUDE_PLUGIN_ROOT}/template/`, skip `INDEX.md`/`kb-data.js`). No account & won't make one → create it
   locally for now, connect to GitHub later.
 - One company = one repo + one `~/knowledge/<slug>`. Never merge two companies into one base.
+- **Owner/CEO, one sentence at the end of NEW setup:** *"One thing to know: this base is shared with
+  everyone you invite — sensitive things (board, salaries, legal) should go in a separate restricted
+  base; just tell me if you ever want one."* (Same flow, access limited on GitHub — see "Confidential
+  knowledge" in `AGENTS.md`. Don't set it up unless they ask.)
 
 ## Phase 3 — Make it yours
 - **Profile (both):** ask name + role → `people/<handle>.md` from `_templates/person.md` + add their git
@@ -61,5 +65,6 @@ Open the viewer: `open ~/knowledge/<slug>/viewer.html`. Then, **only if they're 
 - NEW (owner): goals · what they're building (offer `/kb-new-project` per project) · this week's focus (`now.md`).
 - JOIN (employee): just enrich their own profile (expertise, how they work) — don't touch company `CONTEXT`/`now`.
 Then teach ONE thing: *"You don't need commands — just talk to me: ask about anything, say 'save this',
-or paste meeting notes. If you ever feel lost, say 'how do I use this?'"* (that's `/kb-help`; the full
-command list lives there). `GAPS.md` lists what's left to fill. Congratulate + summarize.
+or paste meeting notes. If you ever feel lost, say 'how do I use this?'"* (that's `/kb-help`; the base
+also ships a permanent guide article — "How to use this knowledge base" — visible in the viewer).
+`GAPS.md` lists what's left to fill. Congratulate + summarize.

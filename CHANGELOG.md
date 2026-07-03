@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.23.0
+
+- **Built-in user guide in every base** — the template now ships `concepts/how-to-use-this-base.md`: the "just talk" table, every /kb-* command explained, the `./kb` viewer, and where sensitive knowledge belongs. New bases are never empty and the guide is searchable + visible in the viewer (aka: help, manual, cheat sheet).
+- **Onboarding knows about restricted bases** — at the end of a NEW setup the owner/CEO hears one sentence: sensitive things (board, salaries, legal) belong in a separate restricted base — say the word. Not set up unless asked; employees joining are unaffected (they simply are not granted access).
+
 ## 0.22.0
 
 - **Bounded facets at scale** — `INDEX-facets.md` no longer grows without limit: each tag/entity line lists the 40 most recently updated articles plus a "+N more (grep)" pointer. At a 10,000-article benchmark the file drops 1.8 MB → ~0.5 MB with every line bounded; reindex stays ~0.5 s, root map ~1 KB, zone pages ≤ ~30 KB, client lookup via grep ~0.1 s.
