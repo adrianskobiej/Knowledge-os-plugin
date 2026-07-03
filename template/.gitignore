@@ -20,6 +20,7 @@
 !/concepts/
 !/skills/
 !/meetings/
+!/tasks/
 !/_templates/
 !/assets/
 !/scripts/
@@ -37,6 +38,7 @@
 /INDEX.md
 /INDEX-facets.md
 /GAPS.md
+/BOARD.md
 /kb-data.js
 # Per-zone indexes are generated too (hierarchical index for large bases),
 # including paginated pages <zone>/INDEX.pN.md for very large zones.

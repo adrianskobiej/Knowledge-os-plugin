@@ -8,7 +8,7 @@
 ## What this is
 
 A company knowledge base. The source of truth is `.md` files with frontmatter in:
-`projects/`, `skills/`, `people/`, `meetings/`, `concepts/`, `departments/`. From them we generate:
+`projects/`, `skills/`, `people/`, `meetings/`, `tasks/`, `concepts/`, `departments/`. From them we generate:
 - `INDEX.md` — root map (zones + counts + "Start here" + briefs). **Read it FIRST.**
 - `<zone>/INDEX.md` — per-zone listing (one line/article) for large-base navigation.
 - `kb-data.js` — data for `viewer.html` (the human-facing reader, offline).
@@ -121,6 +121,10 @@ SAME rules. Regardless of which agent you are:
 - **Meeting** (`/kb-meeting`): paste notes/transcript → distill decisions + action items into
   `meetings/`, tag the client in `entities:`, reindex, log.
 - **Help** (`/kb-help`): one-screen, plain-language cheat sheet in the user's language.
+- **Task** (`/kb-task`): add / update / assign / complete a task — one small file per task in
+  `tasks/`; the engine compiles `BOARD.md` (kanban). Full procedure: `tasks/BRIEF.md`.
+- **Board** (`/kb-board`): show the kanban — whole board or filtered by person/project/overdue.
+  To EXECUTE a task, read its project article first and respect the ⛔ non-goals; then mark it done.
 
 ## Just talk — no commands required (intent routing)
 
@@ -132,6 +136,8 @@ When the user's words match an intent, run the matching procedure yourself:
 | "what do we know about X" / "how do we do Y" | Query / Find |
 | "remember this", "save this", pastes a doc/note | Add knowledge (dedup first) |
 | recounts a call / "we met with <client>" / pastes meeting notes | offer **/kb-meeting** |
+| "add a task", "I'll do it tomorrow", an action item emerges | offer **/kb-task** |
+| "what's on my plate", "show the board", "what's overdue" | **/kb-board** |
 | "we're starting a project/engagement <name>" | offer **/kb-new-project** |
 | "anything new from the team?" | Sync |
 | "how do I use this?" / seems lost | **/kb-help** |
@@ -216,7 +222,7 @@ first. This keeps it de-duplicated and trustworthy even with many contributors.
 The base's edge over a memoryless chat is that it remembers. As you work WITH the owner, write the
 durable bits back — cheaply:
 - New durable knowledge → refine the relevant article IN PLACE (don't append a changelog).
-- A meeting with outcomes → `meetings/` (offer `/kb-meeting`); a decision that changes how we work → `D-NNN`.
+- A meeting with outcomes → `meetings/` (offer `/kb-meeting`); its action items → offer tasks on the board (`/kb-task`); a decision that changes how we work → `D-NNN`.
 - **Tag clients/companies/products in `entities:`** wherever they're discussed — that's what powers
   "show me everything about <client>" later (facets / `/kb-find`).
 - Keep **`now.md`** current — update it when the focus shifts.

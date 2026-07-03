@@ -51,6 +51,14 @@
   article table { border-collapse:collapse; margin:14px 0; font-size:.92em; display:block; overflow-x:auto; }
   article th, article td { border:1px solid var(--line); padding:6px 11px; text-align:left; vertical-align:top; }
   article th { background:var(--chip); font-weight:600; }
+  .board { display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap; }
+  .bcol { flex:1 1 180px; min-width:180px; background:var(--chip); border-radius:10px; padding:10px; }
+  .bcol h3 { margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  .bcard { background:var(--bg,#fff); border:1px solid var(--line); border-radius:8px; padding:8px 10px; margin-bottom:8px; cursor:pointer; }
+  .bcard:hover { border-color:var(--accent); }
+  .bcard small { color:var(--muted); display:block; margin-top:3px; }
+  .bcard.overdue { border-color:#c0392b; }
+  .bempty { color:var(--muted); }
   .wikilink.broken { color:var(--broken); text-decoration:line-through; }
   .backlinks { margin-top:48px; padding-top:18px; border-top:1px solid var(--line); }
   .backlinks h4 { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 8px; }
@@ -91,6 +99,16 @@
         el.onclick = () => { location.hash = 'brief:' + encodeURIComponent(b.path); };
         tree.appendChild(el);
       }
+    }
+    // Task board — pinned when the base has tasks
+    const nTasks = D.articles.filter(a => a.path.split('/')[0] === 'tasks').length;
+    if (nTasks && !f) {
+      const open = D.articles.filter(a => a.path.split('/')[0] === 'tasks' && a.status !== 'done').length;
+      const el = document.createElement('div');
+      el.className = 'item'; el.dataset.board = '1';
+      el.innerHTML = '<div>📌 Task board</div><small>' + open + ' open · ' + (nTasks - open) + ' done</small>';
+      el.onclick = () => { location.hash = 'board'; };
+      tree.appendChild(el);
     }
     // Recently updated — only in the unfiltered view
     if (!f) {
@@ -158,10 +176,39 @@
     document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', e.dataset.brief === path));
     document.getElementById('main').scrollTop = 0;
   }
+  function showBoard() {
+    const c = document.getElementById('content');
+    const tasks = D.articles.filter(a => a.path.split('/')[0] === 'tasks');
+    const today = new Date().toISOString().slice(0, 10);
+    const states = [['todo', '📥 todo'], ['doing', '🔨 doing'], ['blocked', '🚧 blocked'], ['done', '✅ done']];
+    let html = '<article><h1>📌 Task board</h1><div class="board">';
+    for (const [st, label] of states) {
+      let col = tasks.filter(t => t.status === st);
+      if (st === 'done') col = col.sort((x, y) => (y.updated || '').localeCompare(x.updated || '')).slice(0, 15);
+      else col = col.sort((x, y) => (x.due || '9999').localeCompare(y.due || '9999'));
+      html += '<div class="bcol"><h3>' + label + ' (' + col.length + ')</h3>';
+      for (const t of col) {
+        const od = t.due && t.due < today && st !== 'done';
+        html += '<div class="bcard' + (od ? ' overdue' : '') + '" onclick="location.hash=\'' + escapeHtml(t.slug) + '\'">'
+          + '<div>' + escapeHtml(t.title) + '</div><small>'
+          + (t.assignee ? '👤 ' + escapeHtml(t.assignee) + ' ' : '')
+          + (t.project ? '📁 ' + escapeHtml(t.project) + ' ' : '')
+          + (t.due ? '📅 ' + escapeHtml(t.due) + (od ? ' ⏰' : '') : '')
+          + (t.priority ? ' ⚡' + escapeHtml(t.priority) : '') + '</small></div>';
+      }
+      if (!col.length) html += '<small class="bempty">—</small>';
+      html += '</div>';
+    }
+    html += '</div></article>';
+    c.innerHTML = html;
+    document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', !!e.dataset.board));
+    document.getElementById('main').scrollTop = 0;
+  }
   function route() {
     const raw = location.hash.slice(1);
     if (!raw) return;
-    if (raw.startsWith('brief:')) showBrief(decodeURIComponent(raw.slice(6)));
+    if (raw === 'board') showBoard();
+    else if (raw.startsWith('brief:')) showBrief(decodeURIComponent(raw.slice(6)));
     else show(decodeURIComponent(raw));
   }
 

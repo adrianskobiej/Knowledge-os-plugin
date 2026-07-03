@@ -22,6 +22,7 @@ updated: 2026-06-30
 | "Remember this / save this" (+ paste anything) | It distills it into the base |
 | "We had a meeting with \<client\>" (+ notes) | It saves decisions & action items |
 | "We're starting a new project \<name\>" | Short interview, project set up |
+| "Add a task / what's on my plate?" | Manages the team's kanban board |
 | "Anything new from the team?" | Pulls the team's latest updates |
 | "How do I use this?" | Shows this guide |
 
@@ -36,6 +37,8 @@ all the company's knowledge. `GAPS.md` lists what's still incomplete or unverifi
 | `/kb-find <term>` | Precise lookup — by meaning, tag, or client/entity |
 | `/kb-ingest [material]` | Save knowledge (checks for duplicates first) |
 | `/kb-meeting [notes]` | Save a meeting: decisions + action items, client tagged |
+| `/kb-task [description]` | Add / assign / complete a task on the board |
+| `/kb-board [filter]` | Show the kanban (all, by person, by project, overdue) |
 | `/kb-new-project [name]` | Onboard a new project (short interview) |
 | `/kb-sync` | Pull the team's latest updates |
 | `/kb-deploy` | Save & share your changes with the team |

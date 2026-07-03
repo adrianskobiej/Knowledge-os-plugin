@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.25.0
+
+- **Task board — the base is now a lightweight project manager.** New `tasks/` zone: one small file per task (`status: todo|doing|blocked|done`, `assignee`, `project`, `due`, `priority`) — many users can add/update concurrently with zero merge conflicts. The engine compiles **`BOARD.md`**, a bounded kanban (columns by status, open work grouped by project, ⏰ overdue flags, done capped at 15), linked from the root map with an open-task count.
+- **`/kb-task`** — add / update / assign / complete a task conversationally (infers everything it can, asks one short question at most); agents offer it when action items emerge (incl. `/kb-meeting` action items → board) and, when asked to DO a task, read the project article first and respect the ⛔ non-goals, then mark it done with an outcome note.
+- **`/kb-board`** — fluent board views: whole kanban, "what's on my plate", per-project, overdue-only — rendered in the user's language with one useful nudge.
+- **Viewer gets a visual kanban** — a pinned "📌 Task board" entry renders columns with assignee/project/due chips and overdue highlighting; cards click through to the task articles.
+- Intent routing, `/kb-help` and the built-in guide updated; `tasks/BRIEF.md` documents the procedure (incl. the execute-a-task rules for agents).
+
 ## 0.24.0
 
 - **Instant context — agents land on the right knowledge without being told.** Three pieces: (1) the global awareness block now instructs every agent to read `CONTEXT.md`/`now.md` at session start and to **auto-match the current project** against `projects/` (grep the git remote URL / folder name against `resource:`/repo lines) and read its article FIRST — goals, status and hard ⛔ non-goals included; (2) new **`/kb-link-project`** wires a project repo to its article explicitly — an idempotent pointer block in the project's AGENTS.md/CLAUDE.md plus a bidirectional `resource:` link in the article; (3) the golden rule gains step 0 (project match) in `AGENTS.md`.

@@ -23,7 +23,9 @@ Goal: one small article per meeting worth remembering — **decisions + action i
 4. Write `meetings/meeting-<topic>-<YYYY-MM-DD>.md` from `_templates/meeting.md`, in the base's
    content language. Propose → OK → write.
 5. Ripple the important bits: a decision that changes how the company works → also `D-NNN` in
-   `wiki/decisions.md`; an action item that IS the user's current focus → offer updating `now.md`.
+   `wiki/decisions.md`; an action item that IS the user's current focus → offer updating `now.md`;
+   **action items with an owner → offer to put them on the board** (`/kb-task`, one file each, linked
+   back to this meeting via `[[slug]]`).
 6. `node scripts/reindex.mjs` + one line in `wiki/log/log-<author>.md`. Offer `/kb-deploy` so the
    team gets it.
 
