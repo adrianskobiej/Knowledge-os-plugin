@@ -16,6 +16,8 @@ Render this for the user **in their language**, short and friendly (adapt freely
 - *"Add a task / what's on my plate?"* → I'll manage the team's task board (kanban).
 - *"Let's do my check-in / plan the week / goals for the month"* → I'll run your journaling rhythm.
 - *"What's enabled? / enable journaling"* → I'll show or change the base's features.
+- *New computer?* Just log into your GitHub account and say "set up my base" — I'll find and connect
+  your bases automatically (no re-onboarding).
 
 **Browse it yourself (no agent needed):** run `./kb` in the base folder — a visual browser of all the
 company's knowledge. `GAPS.md` lists what's still incomplete.

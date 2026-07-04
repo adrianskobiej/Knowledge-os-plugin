@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.28.0
+
+- **Same person, new computer — log in and go.** /kb-setup recognizes "I already use this": log into YOUR GitHub account and the agent **auto-discovers your bases** (your repos + your orgs, looking for knowledge bases), connects and registers them — no re-onboarding, no link-pasting, profile untouched. Falls back to the invite link only if nothing is found.
+- **Identity & security — the GitHub account IS the login.** New AGENTS.md section + owner security check at setup: recommend **2FA/passkeys** (the CEO's credentials are the only way to "be" the CEO — agents never invent their own password layer), quiet FileVault check on macOS (the clone lives on disk; disk encryption + screen lock protect it), and lost-device guidance (revoke sessions/tokens). One account per person, never shared.
+- Template config version field no longer ships stale.
+
 ## 0.27.0
 
 - **`/kb-settings` — turn features on/off anytime**, not just at onboarding: show current toggles, flip them conversationally ("enable journaling", "turn off private goals"); when enabling, the agent offers to start the ritual right away. If a user asks for something a disabled feature provides, agents offer to enable it instead of refusing.

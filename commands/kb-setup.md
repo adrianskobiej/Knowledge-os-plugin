@@ -29,8 +29,18 @@ node "${CLAUDE_PLUGIN_ROOT}/install.mjs" --list
   `node "${CLAUDE_PLUGIN_ROOT}/install.mjs"`, make sure they have a profile (Phase 3 if not), then open the
   viewer (Phase 4 wrap). They're an existing user — **don't re-onboard**. Done.
   (Running several companies? Also offer: open this one, join a different company [link], or start a new one.)
-- **Nothing here** → ask ONE question: *"Did someone send you a link to your company's base, or are we
-  starting fresh?"* → has a link (or it's on another machine) = **JOIN**; starting fresh = **NEW**.
+- **Nothing here** → ask ONE question: *"Do you already use this base — on another computer or from a
+  link someone sent you — or are we starting fresh?"*
+  - **"I already use it" (same person, new computer) → NEW MACHINE path:** no re-onboarding, no
+    questions. Log them into THEIR GitHub account (Phase 2), then **auto-discover their bases**:
+    `gh repo list --limit 200 --json nameWithOwner` (plus their orgs via `gh api user/orgs` →
+    `gh repo list <org>`) and look for knowledge bases (name contains "knowledge" or repo has
+    `knowledge.config.json`). Found → confirm in one line ("Found <name> — connecting this computer"),
+    clone to `~/knowledge/<slug>`, register (`install.mjs --base`), run `install.mjs`. Their
+    `people/` profile already exists — do NOT recreate it; just confirm who they are and jump to the
+    wrap-up. Nothing found → fall back to asking for the link (maybe the base lives under a teammate's
+    account they were invited to).
+  - has a **link** = **JOIN** (new employee) · **starting fresh** = **NEW**.
 
 ## Phase 2 — Get connected (GitHub, hand-held)
 The base lives in the company's **own private GitHub repo, under their account/organization**. Install any
@@ -49,6 +59,13 @@ missing tools (`node`/`git`/`gh`; macOS `brew install node gh`), then check `gh 
   everyone you invite — sensitive things (board, salaries, legal) should go in a separate restricted
   base; just tell me if you ever want one."* (Same flow, access limited on GitHub — see "Confidential
   knowledge" in `AGENTS.md`. Don't set it up unless they ask.)
+- **Owner security check (30 seconds, do it, don't lecture):** your GitHub account IS the key to the
+  company's knowledge — (1) recommend **two-factor auth / passkeys** (github.com/settings/security;
+  offer to open it); (2) on macOS check disk encryption quietly (`fdesetup status`) — if FileVault is
+  off, suggest turning it on (the base lives on this disk); (3) remind: screen lock + don't share the
+  OS user account. If a device is ever lost: revoke sessions/tokens at github.com/settings/sessions
+  and `gh auth logout` remotely-invalidated. That's it — no custom passwords: GitHub's auth is the
+  identity, and inventing our own would weaken it.
 
 ## Phase 3 — Make it yours
 - **Rhythms on/off (NEW base, one question):** *"Want me to also run a light work rhythm — a daily

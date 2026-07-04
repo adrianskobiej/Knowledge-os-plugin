@@ -8,10 +8,24 @@
   "roster": {
     "you@example.com": "your-slug"
   },
-  "departments": ["sales", "marketing", "product", "operations"],
+  "departments": [
+    "sales",
+    "marketing",
+    "product",
+    "operations"
+  ],
   "conventions": {
-    "frontmatterRequired": ["title", "slug", "category", "summary", "status"],
-    "statuses": ["draft", "stable"]
+    "frontmatterRequired": [
+      "title",
+      "slug",
+      "category",
+      "summary",
+      "status"
+    ],
+    "statuses": [
+      "draft",
+      "stable"
+    ]
   },
-  "version": "0.12.0"
+  "version": "0.28.0"
 }

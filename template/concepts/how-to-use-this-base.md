@@ -56,6 +56,9 @@ all the company's knowledge. `GAPS.md` lists what's still incomplete or unverifi
 
 - **One habit that pays off:** after a meeting or a decision, tell the assistant — 30 seconds of
   "save this" keeps the whole company's memory sharp.
+- **New computer?** Log into your GitHub account and run `/kb-setup` — your bases are found and
+  connected automatically. Your GitHub account is your identity: protect it with **2FA/passkeys**, and
+  keep disk encryption + screen lock on (the base lives on your disk). No separate passwords exist.
 - **Sensitive knowledge** (board, salaries, legal, personal data) does NOT belong here — it lives in
   a separate, access-restricted base. Ask the assistant if unsure; it will ask before saving anything
   sensitive. See "Confidential knowledge" in `AGENTS.md`.

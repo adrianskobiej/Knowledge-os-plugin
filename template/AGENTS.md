@@ -247,6 +247,22 @@ pushed: offer once, back off if declined. If the user asks for something a disab
 say it is off and offer to enable it — never just refuse. The viewer shows the same state under
 **⚙️ Settings**.
 
+## Identity & security — your GitHub account IS the login
+
+There are no knowledge-os accounts or passwords: **identity = the person's GitHub account**, and
+protection = GitHub's auth (recommend **2FA / passkeys**, especially for the owner). Practical rules:
+
+- **Second computer, same person:** don't re-onboard — log into the SAME GitHub account and run
+  `/kb-setup`; it auto-discovers the person's bases from their account/orgs and connects them.
+- **One account per person, never shared.** "Logging in as the CEO" should be impossible because the
+  CEO's GitHub credentials are theirs alone (2FA enforced); their restricted base (see below) is
+  invitation-only on top of that.
+- **The clone lives on disk** — an unlocked laptop exposes it. Recommend OS screen lock + full-disk
+  encryption (macOS FileVault: `fdesetup status`); that's what "password-protects" the local copy.
+- **Lost/stolen device:** revoke at github.com/settings/sessions (and tokens), remove the device's
+  SSH keys; the private repo is then unreachable from that machine.
+- Agents must NEVER invent their own password layer or store credentials in the base.
+
 ## Confidential knowledge — the repo IS the boundary
 
 Git/GitHub access is per-**repository**; there is no folder-level secrecy inside a shared base.
