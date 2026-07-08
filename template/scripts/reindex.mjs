@@ -557,6 +557,14 @@ gaps += staleList.length ? staleList.map(a => `- [${a.title}](${a.path}) — upd
 const inferredList = active.filter(a => a.confidence === 'inferred');
 gaps += `\n## 🔍 Inferred (AI-derived — verify against a primary source)\n\n`;
 gaps += inferredList.length ? inferredList.map(a => `- [${a.title}](${a.path})${a.source ? ` — src: ${a.source}` : ''}`).join('\n') + '\n' : '_none_\n';
+// Personal context drifts faster than company facts — flag owner/partner personal contexts
+// not refreshed in 90 days (life priorities shift). Nudge toward /kb-onboard or /kb-align.
+const PERSONAL_STALE_DAYS = 90;
+const personalStale = active.filter(a => a.type === 'PersonalContext' && (() => {
+  const t = Date.parse(a.updated); return !Number.isNaN(t) && (_now - t) / 86400000 > PERSONAL_STALE_DAYS;
+})());
+gaps += `\n## 🔄 Personal context to refresh (life priorities shift — > 90 days)\n\n`;
+gaps += personalStale.length ? personalStale.map(a => `- [${a.title}](${a.path}) — upd. ${a.updated} · run \`/kb-onboard\` then \`/kb-align\``).join('\n') + '\n' : '_none_\n';
 writeFileSync(join(ROOT, 'GAPS.md'), gaps);
 
 // ── INSIGHTS.md — structure the folder view can't show ──────────────────────────

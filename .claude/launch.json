@@ -2,12 +2,6 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "kb-docs",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8098", "--directory", "."],
-      "port": 8098
-    },
-    {
       "name": "kb-viewer",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8099", "--directory", "template"],

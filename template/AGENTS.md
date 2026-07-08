@@ -109,6 +109,13 @@ actions contradict stated wants, and where partners' motivations diverge. Run it
 ritual) or whenever a big decision (new project, big commitment) is on the table — decide against each
 stakeholder's real motivation, not just the business case.
 
+**Values guardrail** — before proposing a big action or plan (a new project, a heavy sprint, a
+commitment, a hire), check it against the relevant owner/partner's personal context — their **red lines**,
+**time budget** and definition of **"enough"**. If it crosses a red line or blows past a stated limit, say
+so and ask before proceeding — don't just plan over it (e.g. a plan that fills the weekend when they said
+weekends are off; a 7th project when they want fewer + more family time; deepening a single-client
+dependency they named as a red line).
+
 **Privacy:** personal contexts are `visibility: owners` — shared among owner + partners, never with
 employees or company-facing agents. If the base ever gains employees who can clone the repo, move personal
 contexts into a partners-only base (separate repo — see "Confidential knowledge" below).

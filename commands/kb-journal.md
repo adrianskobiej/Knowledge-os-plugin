@@ -32,7 +32,11 @@ connect to the month's goals when relevant.
 4. Apply: update `now.md` (priorities), board tasks (priority/due), note one line in today's entry.
 
 ## month-start — set the month's goals
-Ask for **3–5 most important goals**, split **💼 Professional / 🏠 Private** (respect `features.goals`).
+**Owner/partner first — run `/kb-align`.** Surface the tensions between their personal context (what they
+*want*: time budget, "enough", red lines) and what the company is *doing* (active projects, board,
+`finance.json`), so the month's goals are set against the real **zgrzyty**, not just the board. Name the
+sharpest tension in one line before goal-setting. (Employees / no personal context → skip.)
+Then: ask for **3–5 most important goals**, split **💼 Professional / 🏠 Private** (respect `features.goals`).
 Push for sharp, checkable goals; link them to board tasks ([[slug]]) or offer to create the key tasks.
 Write `journal/<person>/goals-<YYYY-MM>.md` from `_templates/goals-month.md`; reflect the top ones in
 `now.md`. Reindex, log.

@@ -22,6 +22,13 @@ Mark anything still unknown as `⚠ TBD` (in English — base content is English
    7. **✅ In scope** — how agents should help.
    8. **⛔ Out of scope (non-goals)** — a HARD boundary; agents do not act there without explicit approval.
    9. **Relations** — `[[slug]]` links to people / other projects / skills.
+2b. **Decision lens (alignment check) — before you add it.** A new project is a big commitment, so weigh it
+   against the owner's personal context (`people/<owner>-personal.md`): does it fit their **time budget**,
+   focus, definition of **"enough"**, and how many projects are already `status: active`? If it pulls
+   against a stated want or red line (e.g. *"more family time / fewer projects"* while this would be the Nth
+   active project; or it deepens a single-client dependency they named as a red line), **say so in one line
+   and ask** — add it, pause another first, or drop it? Surface the tension; the user decides. (No personal
+   context yet → skip; offer `/kb-onboard`.)
 3. Determine the author slug: `git config user.email` → `roster` in `knowledge.config.json`.
 4. Draft `projects/<slug>.md` from `_templates/project.md` with full frontmatter and the answers above.
 5. Propose before writing: show the path + content and get an explicit OK.

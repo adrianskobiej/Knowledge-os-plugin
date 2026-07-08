@@ -30,6 +30,20 @@ Structure it:
 - **✅ Aligned** — where actions genuinely serve stated wants (reinforce these).
 - **🔧 Options** — 2–3 concrete moves that would ease the sharpest tension (e.g. delegate project X to an AI worker, pause the 7th project, set a hard weekly cap).
 
-Then tell the user the 1–2 sharpest tensions in plain language and ask which they want to act on. Offer to turn a decision into `now.md` / a board task. Re-run monthly (tie it into the goals ritual — see `/kb-journal`).
+Then tell the user the 1–2 sharpest tensions in plain language and ask which they want to act on. When they decide, **turn it into action** — don't leave it as a note:
+- a concrete **board task** (`/kb-task`, e.g. "delegate client acquisition to Hermes"),
+- an update to **`now.md`** (a shifted priority),
+- or, if it sets a **rule** (e.g. a client-concentration cap ≤ 40%, a hard weekly-hours limit), a **`D-NNN`** entry in `wiki/decisions.md` so agents enforce it going forward (see the values guardrail in `AGENTS.md`).
+
+Re-run monthly (tie it into the goals ritual — see `/kb-journal`).
+
+## 4. Track the trend — `alignment.json`
+So alignment is measurable over time (like the autonomy benchmark), also write **`alignment.json`**:
+- **Score 0–100** (100 = fully aligned). Start at 100 and subtract per tension by severity:
+  **critical −25** (a red line already crossed), **major −15** (stated want vs current path), **minor −8**; floor at 0.
+- Shape: `{ "score": N, "band": "aligned|strained|conflicted", "updated": "<ISO>", "tensions": [ { "who", "axis", "severity", "line" } ], "history": [ { "date": "YYYY-MM-DD", "score": N } ] }`.
+- **Append** a `{date, score}` point to `history` each run (don't overwrite it) — that's the trend.
+- Owner-derived → keep it out of shared context (it's gitignored like `ALIGNMENT.md`; the viewer can read it locally for a 🎯 Alignment view). Bands: ≥75 aligned · 50–74 strained · <50 conflicted.
+
 
 > Personal context is **owner/partner only** — never expose it to employees or company-facing agents. If you can't read any `*-personal.md`, tell the user none exist yet and offer `/kb-onboard` to capture one.
