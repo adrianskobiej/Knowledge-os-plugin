@@ -83,6 +83,36 @@ SAME rules. Regardless of which agent you are:
   no merge conflicts.
 - **Decisions** that change how we work → a new `D-NNN` entry in `wiki/decisions.md`.
 
+## Personal vs company context (owners, partners, employees)
+
+The base keeps **two kinds of context, on purpose** — they change at different speeds, and holding them
+side by side is what lets the base spot **tensions** between what a person *wants* and what the company is
+*doing* (e.g. "wants more family time" vs "starting a 7th project"; "wants to earn autonomously" vs
+"personally doing the execution").
+
+- **Company context** — shared, everyone reads it: `CONTEXT.md` (identity, operating model, **business**
+  goals, active work, how we decide, hard boundaries) + `now.md` (current focus). Business facts only.
+- **Personal context** — the person's own drivers (their "why", what "enough" looks like, values &
+  non-negotiables, time/energy boundaries, the role they want to play, red lines). One private article per
+  owner/partner: `people/<slug>-personal.md`, `type: PersonalContext`, `visibility: owners`.
+
+**Roles** (`role:` in `people/<slug>.md`):
+- **owner / partner** — full access to everything (partners have the **same rights as the owner**), **and**
+  a personal context. Each owner/partner answers the same motivation interview (`/kb-onboard`), so the base
+  understands every side's drivers behind a decision.
+- **employee** — reads the **company** context and does the work; **no personal context** (employees don't
+  get one, and must never be shown owners'/partners' personal contexts).
+
+**Alignment ritual (`/kb-align`)** — the reason for the split. It reads the personal contexts next to
+`CONTEXT.md`, `now.md`, active projects, the board and `autonomy.json`, and surfaces the **zgrzyty**: where
+actions contradict stated wants, and where partners' motivations diverge. Run it monthly (with the goals
+ritual) or whenever a big decision (new project, big commitment) is on the table — decide against each
+stakeholder's real motivation, not just the business case.
+
+**Privacy:** personal contexts are `visibility: owners` — shared among owner + partners, never with
+employees or company-facing agents. If the base ever gains employees who can clone the repo, move personal
+contexts into a partners-only base (separate repo — see "Confidential knowledge" below).
+
 ## Workflow (procedures = /kb-* commands)
 
 - **Query** (`/kb-query <question>`): read `INDEX.md` → open the relevant articles →
@@ -178,6 +208,8 @@ When the user's words match an intent, run the matching procedure yourself:
 | "let's do my check-in", "podsumujmy dzień", "plan the week", "goals for the month" | **/kb-journal** |
 | "what's enabled?", "enable journaling", "turn off private goals" | **/kb-settings** |
 | "we're starting a project/engagement <name>" | offer **/kb-new-project** |
+| "add a co-founder / partner", "onboard me / an employee", "dodaj wspólnika", "wprowadź osobę" | **/kb-onboard** |
+| "are we aligned?", "gdzie są zgrzyty?", "does what I do match what I want?", "sprawdź spójność" | **/kb-align** |
 | "anything new from the team?" | Sync |
 | "how do I use this?" / seems lost | **/kb-help** |
 

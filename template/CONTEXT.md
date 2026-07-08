@@ -1,18 +1,21 @@
-# CONTEXT — core (read first, every session)
+# CONTEXT — company core (read first, every session)
 
-Compact, stable context for the agent. Keep it short (≤ ~300 tokens); full detail lives in the
-owner's `people/` profile and the zone indexes. Fill in the placeholders.
+Compact, stable **company** context — the shared truth every agent and teammate reads. Keep it short
+(≤ ~300 tokens). This is the *company* side; each owner/partner's **personal** drivers live separately in
+their private `people/<slug>-personal.md` (`visibility: owners`) — see "Personal vs company context" in
+`AGENTS.md`. Holding the two apart is what lets `/kb-align` spot tensions between them.
 
 ## Who
 **<Owner name>** — <role> at **<company>**. Contact: <email> · <phone>.
+<Owners & partners: [[owner-slug]] · [[partner-slug]] — each has a private personal context.>
 
 ## Operating model
 <How the business runs — e.g. "solo founder + a team of AI agents; the company runs as
 autonomously as possible; the owner ideates/creates, agents execute".>
 
-## Goals
-- **Personal (why the business exists):** <e.g. buy a house, travel, financial freedom>.
-- **Business:** <what the company builds / sells>.
+## Business goals
+- <What the company builds / sells; measurable goals + horizon.>
+> The *personal* "why" behind these (what the money/venture is for) lives in each owner's personal context, not here.
 
 ## Active work
 <Links to the main active projects, e.g. [[project-a]] · [[project-b]].>
