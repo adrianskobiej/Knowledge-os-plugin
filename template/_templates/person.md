@@ -6,6 +6,7 @@ type: Person                       # OKF type
 summary: Role and main area of responsibility in one sentence.
 tags: [department, role]
 status: stable
+role: employee                     # owner | partner | employee — owners & partners also get a private personal context
 author: your-slug
 external: false
 created: YYYY-MM-DD
@@ -17,6 +18,9 @@ updated: YYYY-MM-DD
 Role: e.g. Head of Sales
 Department: [[department-name]]
 Contact: email / slack
+
+<!-- Owners & partners only: link their private personal context (motivations/values), captured via /kb-onboard. -->
+<!-- Personal context: [[first-last-personal]] -->
 
 ## Responsibilities
 - ...
