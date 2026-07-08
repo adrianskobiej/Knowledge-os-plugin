@@ -12,6 +12,9 @@ A company knowledge base. The source of truth is `.md` files with frontmatter in
 - `INDEX.md` — root map (zones + counts + "Start here" + briefs). **Read it FIRST.**
 - `<zone>/INDEX.md` — per-zone listing (one line/article) for large-base navigation.
 - `kb-data.js` — data for `viewer.html` (the human-facing reader, offline).
+- `INSIGHTS.md` — the base's shape: god nodes (most-connected), surprising cross-zone links, suggested questions.
+- `graph.json` — the portable node/edge graph (degree + community per node); powers the graph commands.
+- `LESSONS.md` — work memory (from `/kb-reflect`): preferred sources, contested facts, known dead ends. **Read at session start.**
 
 These are generated and in `.gitignore` — never edit them by hand. The hand-written
 always-on context lives in `CONTEXT.md` (core) and `now.md` (current focus).
@@ -131,6 +134,28 @@ SAME rules. Regardless of which agent you are:
   goals (professional/private) & review. Offer the daily check-in once on the first conversation of
   the day — ONLY if `features.journal` is on. Conventions: `journal/BRIEF.md`.
 
+### Graph, memory & metrics (the queryable layer)
+
+The base is a graph — `[[wikilinks]]` are edges. On top of navigation, these deterministic, zero-dep
+commands treat it as one:
+
+- **Explain** (`/kb-explain <slug>`): a node, its neighbours, its community, whether it's a god node —
+  `node scripts/kb-graph.mjs explain "<x>"`.
+- **Path** (`/kb-path <a> <b>`): the shortest `[[link]]` chain between two concepts (real reasoning
+  trail, not a guess) — `node scripts/kb-graph.mjs path <a> <b>`.
+- **Impact** (`/kb-links <slug>`): what references an article (backlinks) + what it links out to —
+  run it **before editing a hub** to see what ripples — `node scripts/kb-graph.mjs links "<x>"`.
+- **Learn from outcomes** (`/kb-save-result` → `/kb-reflect`): after answering from the base or
+  finishing a delegated task, record how it went (`useful|dead_end|corrected`) with
+  `node scripts/kb-memory.mjs save …`; fold outcomes into `LESSONS.md` with
+  `node scripts/kb-memory.mjs reflect`. Preferred sources first, never re-walk a known dead end.
+- **Add from the web** (`/kb-add <url>`): capture an arXiv paper / article into `raw/`
+  (URL-validated, size-capped, **secret-guarded**) — `node scripts/kb-add.mjs <url>` — then distil
+  with `/kb-ingest`.
+- **Retrieval benchmark** (`/kb-bench`): recall@1/3/5 over `eval/questions.json` —
+  `node scripts/kb-bench.mjs`. A health metric like the autonomy benchmark; it should climb as the
+  base matures. Misses usually mean a weak `summary`, missing `tags`, or a missing `aka:` synonym.
+
 ## Just talk — no commands required (intent routing)
 
 Users should NOT have to learn commands — the commands are shortcuts for you, not homework for them.
@@ -139,6 +164,12 @@ When the user's words match an intent, run the matching procedure yourself:
 | The user says (any phrasing, any language) | You run |
 |---|---|
 | "what do we know about X" / "how do we do Y" | Query / Find |
+| "how are X and Y related", "what connects X to Y" | **/kb-path** |
+| "what references X", "what breaks if I change X", "impact of X" | **/kb-links** |
+| "explain X", "what's around X in the base" | **/kb-explain** |
+| "that worked" / "that was a dead end" / "actually the answer was…" | **/kb-save-result** |
+| "what have we learned", "update the lessons", "co się sprawdziło" | **/kb-reflect** |
+| shares a URL: "add this paper/article", "zapisz ten link" | **/kb-add** |
 | "remember this", "save this", pastes a doc/note | Add knowledge (dedup first) |
 | recounts a call / "we met with <client>" / pastes meeting notes | offer **/kb-meeting** |
 | "add a task", "I'll do it tomorrow", an action item emerges | offer **/kb-task** |
@@ -198,6 +229,8 @@ first. This keeps it de-duplicated and trustworthy even with many contributors.
 4. Quality filter: keep only what passes "would an LLM querying this in 6 months actually use it?". Record facts with their source; mark hypotheses/assumptions as such; drop paraphrase, speculation, raw code, secrets.
 5. Transcribe first: turn screenshots / diagrams / charts into text before saving — the base is text the LLM reads.
 6. Provenance (optional): `source` + `authority` (`primary`/`secondary`/`derived`) per the folder's `BRIEF.md`.
+   Optionally `confidence: verified | inferred | unverified` — mark AI-inferred facts (`inferred`) so
+   `GAPS.md` lists them for a human to verify against a primary source (≈ Graphify's EXTRACTED vs INFERRED).
 7. Link liberally via `[[slug]]`.
 7b. **Make implicit meaning findable:** add `aka:` synonyms, and optionally a `## Questions it
     answers` section listing the questions/phrasings the article answers — so a search by meaning

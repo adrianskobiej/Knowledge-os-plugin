@@ -27,6 +27,8 @@
 !/scripts/
 !/wiki/
 !/raw/
+!/memory/
+!/eval/
 
 # 3) raw/ holds source material that may contain secrets — keep the folder,
 #    ignore its contents. /kb-ingest distils raw material into articles; the
@@ -41,6 +43,11 @@
 /GAPS.md
 /BOARD.md
 /kb-data.js
+/INSIGHTS.md
+/graph.json
+/LESSONS.md
+# Personal query log stays local; the memory/*.md outcome docs are shared (compound the team's lessons).
+/memory/querylog.jsonl
 # Per-zone indexes are generated too (hierarchical index for large bases),
 # including paginated pages <zone>/INDEX.pN.md for very large zones.
 /*/INDEX*.md
