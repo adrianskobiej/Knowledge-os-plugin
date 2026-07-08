@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "kb-live",
+      "name": "kb-viewer",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8131", "--directory", "/Users/adrianskobiej/knowledge/knowlage-os"],
-      "port": 8131
+      "runtimeArgs": ["-m", "http.server", "8099", "--directory", "template"],
+      "port": 8099
     }
   ]
 }
