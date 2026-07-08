@@ -2,16 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "kb-docs",
+      "name": "kb-live",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8098", "--directory", "."],
-      "port": 8098
-    },
-    {
-      "name": "kb-viewer",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8099", "--directory", "template"],
-      "port": 8099
+      "runtimeArgs": ["-m", "http.server", "8131", "--directory", "/Users/adrianskobiej/knowledge/knowlage-os"],
+      "port": 8131
     }
   ]
 }
