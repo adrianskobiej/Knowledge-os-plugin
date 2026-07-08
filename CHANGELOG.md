@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.29.0
+
+- **`/kb-offer` — the offer consultant (Grand Slam Offer).** A guided funnel that turns a raw idea into a client-ready **offer document** using Alex Hormozi's method ($100M Offers + Lost Chapters + Closing Playbook). Always opens with **"offer for us or for a client?"** — for-us pulls context from the base and asks less; for-a-client runs an intake interview first. Then it walks **11 stages** (market/avatar, pricing & tiers, value equation, problems→solutions, trim & stack, scarcity, urgency, bonuses, guarantees, MAGIC naming, document) and ships the document plus an internal "how to sell it" price-defense section.
+- **New bundled skill `offer-forge`** in `template/skills/` (article + installable auto-trigger `_skills/offer-forge/SKILL.md`): the full method (Value Equation, 5-step creation, Trim & Stack, 3 scarcity / 4 urgency types, bonuses, 4 guarantee types, MAGIC, VIP/Standard tiers, seeds-of-doubt closing). On a base with the assistants layer it drives an 11-agent funnel (`offer-market` … `offer-document`) led by the **Midas** offer specialist; without it, the same funnel runs inline as a single staged pass.
+- **Consultative pacing + offer-improvement mode.** The consultant works **one stage per message** (advice → your decision → next stage), never dumping the whole offer at once. Beyond building from scratch it can **audit and rebuild an existing offer** (what problem are we solving? / trim & stack / bottleneck diagnosis: supply → price·ratio·productize·hire, cash flow → deposit/layaway, conversion → simplify) in a direct, opinionated voice.
+
 ## 0.28.0
 
 - **Same person, new computer — log in and go.** /kb-setup recognizes "I already use this": log into YOUR GitHub account and the agent **auto-discovers your bases** (your repos + your orgs, looking for knowledge bases), connects and registers them — no re-onboarding, no link-pasting, profile untouched. Falls back to the invite link only if nothing is found.
