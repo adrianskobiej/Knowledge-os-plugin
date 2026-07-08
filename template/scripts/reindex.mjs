@@ -2,6 +2,10 @@
 // reindex.mjs — rebuilds INDEX.md (lightweight, for LLMs) + kb-data.js (for viewer.html)
 // from the frontmatter in .md articles. Zero dependencies — needs only `node`.
 //
+// Also emits the graph layer (the base is a link graph — [[wikilinks]] are edges):
+//   • INSIGHTS.md — god nodes, surprising cross-zone links, communities, suggested questions
+//   • graph.json  — portable node/edge graph (degree + community per node) for tools & queries
+//
 // Usage:  node scripts/reindex.mjs           (run from the knowledge base root)
 //         node scripts/reindex.mjs --lint     (consistency report only, no writes)
 //         node scripts/reindex.mjs --bless-quotes  (approve the current protected-quotes state)
@@ -25,6 +29,7 @@ const INSTALL_HOOK = process.argv.includes('--install-git-hook');
 const STATS = process.argv.includes('--stats');
 const REQUIRED = ['title', 'slug', 'category', 'summary', 'status'];
 const AUTHORITIES = ['primary', 'secondary', 'derived'];
+const CONFIDENCES = ['verified', 'inferred', 'unverified'];  // T21: human-verified vs AI-inferred (≈ Graphify EXTRACTED/INFERRED)
 const WIKILINK = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
 
 // ── Universal auto-reindex (tool-agnostic: Claude / Codex / Antigravity) ──────
@@ -189,6 +194,8 @@ for (const file of files) {
   for (const f of REQUIRED) if (!meta[f]) warnings.push(`⚠ Missing field "${f}": ${rel}`);
   if (meta.authority && !AUTHORITIES.includes(meta.authority))
     warnings.push(`⚠ Unknown authority "${meta.authority}" (allowed: ${AUTHORITIES.join('/')}): ${rel}`);
+  if (meta.confidence && !CONFIDENCES.includes(meta.confidence))
+    warnings.push(`⚠ Unknown confidence "${meta.confidence}" (allowed: ${CONFIDENCES.join('/')}): ${rel}`);
   const wikilinks = [...stripCode(body).matchAll(WIKILINK)].map(m => m[1].trim());
   articles.push({
     slug,
@@ -205,6 +212,7 @@ for (const file of files) {
     updated: meta.updated || '',
     source: meta.source || '',
     authority: meta.authority || '',
+    confidence: meta.confidence || '',   // T21: verified | inferred | unverified (optional)
     author: meta.author || '',
     // Task fields (tasks/ zone; harmless empty elsewhere) — power BOARD.md + the viewer board.
     // assignee accepts one slug or a list ([anna, adrian]) — several people can own one task.
@@ -327,6 +335,125 @@ if (STATS) {
 const active = articles.filter(a => a.status !== 'archived');
 const archived = articles.filter(a => a.status === 'archived');
 
+// ── Knowledge graph: degree · communities · god nodes · surprising links ──────
+// The base is already a graph ([[wikilinks]] = edges). Here we make that structure
+// explicit and queryable — node degree, communities (label propagation, zero-dep),
+// the most-connected "god nodes", and cross-zone "surprising" links the folder view
+// hides. Feeds INSIGHTS.md, graph.json and (via kb-data.js) the viewer Map view.
+// Fully deterministic: stable node order + string tie-breaks → byte-stable output.
+const bySlug = Object.fromEntries(active.map(a => [a.slug, a]));
+const zoneOf = a => a.path.split('/')[0];
+const activeSlugSet = new Set(active.map(a => a.slug));
+const adj = new Map(active.map(a => [a.slug, new Set()]));   // undirected neighbours
+const edgeSet = new Set();                                    // "a|b" (a<b) — undirected dedupe
+for (const a of active) {
+  for (const t of a.links) {
+    if (!activeSlugSet.has(t) || t === a.slug) continue;
+    adj.get(a.slug).add(t); adj.get(t).add(a.slug);
+    edgeSet.add(a.slug < t ? `${a.slug}|${t}` : `${t}|${a.slug}`);
+  }
+}
+const edgeList = [...edgeSet].map(k => { const [source, target] = k.split('|'); return { source, target, relation: 'links_to' }; });
+const degreeOf = s => (adj.get(s)?.size || 0);
+
+// Community detection — label propagation on the hub-excluded subgraph. A few
+// mega-hubs (e.g. the owner's profile) link to everything and, left in, collapse
+// the whole base into one blob. So we lift out the highest-degree hubs, cluster the
+// rest, then attach each hub to whichever cluster it connects to most. Deterministic:
+// fixed node order + string tie-breaks → the same partition every run.
+const _deg = active.map(a => degreeOf(a.slug)).sort((x, y) => x - y);
+const HUB_CUT = Math.max(5, _deg[Math.floor(_deg.length * 0.9)] || Infinity);
+const isHub = s => degreeOf(s) >= HUB_CUT;
+const partNodes = active.filter(a => !isHub(a.slug)).map(a => a.slug);
+const padj = new Map(partNodes.map(s => [s, [...(adj.get(s) || [])].filter(n => !isHub(n))]));
+const community = new Map(partNodes.map(s => [s, s]));
+{
+  const order = partNodes.slice().sort();
+  for (let iter = 0; iter < 100; iter++) {
+    let changed = false;
+    for (const s of order) {
+      const nbrs = padj.get(s);
+      if (!nbrs.length) continue;
+      const counts = new Map();
+      for (const n of nbrs) { const l = community.get(n); counts.set(l, (counts.get(l) || 0) + 1); }
+      let best = community.get(s), bestC = counts.get(best) || 0;
+      for (const [l, c] of counts)
+        if (c > bestC || (c === bestC && String(l) < String(best))) { best = l; bestC = c; }
+      if (best !== community.get(s)) { community.set(s, best); changed = true; }
+    }
+    if (!changed) break;
+  }
+}
+// Group non-hub members, drop singletons (not a community), number by size (largest = 0).
+const commMembers = new Map();
+for (const s of partNodes) {
+  const c = community.get(s);
+  if (!commMembers.has(c)) commMembers.set(c, []);
+  commMembers.get(c).push(s);
+}
+const commList = [...commMembers.values()].filter(m => m.length >= 2);
+commList.forEach(m => m.sort());
+commList.sort((x, y) => y.length - x.length || x[0].localeCompare(y[0]));
+const communityIndex = new Map();                            // slug → community id, else -1
+commList.forEach((members, id) => members.forEach(s => communityIndex.set(s, id)));
+// Attach each hub to the community most of its neighbours sit in (for colour only —
+// hubs bridge clusters, so they aren't counted as core members of any one).
+for (const a of active) {
+  if (!isHub(a.slug)) continue;
+  const counts = new Map();
+  for (const n of adj.get(a.slug) || []) {
+    const c = communityIndex.get(n);
+    if (c !== undefined) counts.set(c, (counts.get(c) || 0) + 1);
+  }
+  let best = -1, bestC = 0;
+  for (const [c, n] of counts) if (n > bestC || (n === bestC && best !== -1 && c < best)) { best = c; bestC = n; }
+  if (best !== -1) communityIndex.set(a.slug, best);
+}
+const communities = commList.map((members, id) => {
+  const hub = members.slice().sort((x, y) => degreeOf(y) - degreeOf(x) || x.localeCompare(y))[0];
+  const zones = {};
+  for (const s of members) { const z = zoneOf(bySlug[s]); zones[z] = (zones[z] || 0) + 1; }
+  return { id, label: bySlug[hub]?.title || hub, hub, size: members.length, zones, members };
+});
+
+// God nodes — most-connected concepts. Everything flows through these.
+const godNodes = active
+  .map(a => ({ slug: a.slug, title: a.title, path: a.path, zone: zoneOf(a), degree: degreeOf(a.slug) }))
+  .filter(n => n.degree > 0)
+  .sort((x, y) => y.degree - x.degree || x.slug.localeCompare(y.slug))
+  .slice(0, 10);
+const godSet = new Set(godNodes.map(n => n.slug));
+
+// Surprising connections — links spanning two different zones, rarest pairing first.
+// A link routed through a hub is less surprising (hubs connect to everything).
+const zonePairCount = new Map();
+const crossZone = [];
+for (const key of edgeSet) {
+  const [a, b] = key.split('|');
+  const za = zoneOf(bySlug[a]), zb = zoneOf(bySlug[b]);
+  if (za === zb) continue;
+  const pair = za < zb ? `${za}|${zb}` : `${zb}|${za}`;
+  zonePairCount.set(pair, (zonePairCount.get(pair) || 0) + 1);
+  crossZone.push({ a, b, za, zb, pair });
+}
+const surprises = crossZone
+  .map(e => ({
+    ...e,
+    score: (1 / zonePairCount.get(e.pair)) - ((godSet.has(e.a) || godSet.has(e.b)) ? 0.25 : 0),
+    combinedDegree: degreeOf(e.a) + degreeOf(e.b),
+  }))
+  .sort((x, y) => y.score - x.score || x.combinedDegree - y.combinedDegree || x.a.localeCompare(y.a))
+  .slice(0, 8);
+
+// Suggested questions — things the graph is uniquely placed to answer.
+const orphanArts = active.filter(a => degreeOf(a.slug) === 0);
+const questions = [];
+if (godNodes.length >= 2) questions.push(`Jak „${godNodes[0].title}” łączy się z „${godNodes[1].title}”?`);
+if (surprises.length) questions.push(`Co łączy strefę \`${surprises[0].za}\` ze strefą \`${surprises[0].zb}\` (${bySlug[surprises[0].a].title} ↔ ${bySlug[surprises[0].b].title})?`);
+if (godNodes.length) questions.push(`Które artykuły zależą od „${godNodes[0].title}” — co się rozjedzie, jeśli to zmienimy?`);
+if (communities.length >= 2) questions.push(`Czym różni się obszar „${communities[0].label}” od „${communities[1].label}”?`);
+if (orphanArts.length) questions.push(`Dlaczego ${orphanArts.length} artykuł(ów) jest niepołączonych z resztą bazy — czego brakuje w linkach?`);
+
 const byTop = {};
 for (const a of active) (byTop[a.path.split('/')[0]] ??= []).push(a);
 
@@ -341,8 +468,9 @@ const line = (a) => {
   const upd = a.updated ? ` · upd. ${a.updated}` : '';
   const st = a.status !== 'stable' ? ` _(${a.status})_` : '';
   const auth = a.authority && a.authority !== 'primary' ? ` · ⟨${a.authority}⟩` : '';
+  const conf = a.confidence === 'inferred' ? ' · 🔍inferred' : '';
   const by = a.author ? ` · by ${a.author}` : '';
-  return `- **[${a.title}](${a.path})**${st} — ${a.summary}${tags}${aka}${auth}${by}${upd}\n`;
+  return `- **[${a.title}](${a.path})**${st} — ${a.summary}${tags}${aka}${auth}${conf}${by}${upd}\n`;
 };
 
 // per-zone indexes: <zone>/INDEX.md (agent opens only the zone it needs).
@@ -425,7 +553,57 @@ gaps += `\n## 📝 Drafts\n\n`;
 gaps += draftList.length ? draftList.map(a => `- [${a.title}](${a.path})`).join('\n') + '\n' : '_none_\n';
 gaps += `\n## 🕰 Stale (updated > 6 months)\n\n`;
 gaps += staleList.length ? staleList.map(a => `- [${a.title}](${a.path}) — upd. ${a.updated}`).join('\n') + '\n' : '_none_\n';
+// T21: articles the AI inferred rather than a human verifying — check against a primary source.
+const inferredList = active.filter(a => a.confidence === 'inferred');
+gaps += `\n## 🔍 Inferred (AI-derived — verify against a primary source)\n\n`;
+gaps += inferredList.length ? inferredList.map(a => `- [${a.title}](${a.path})${a.source ? ` — src: ${a.source}` : ''}`).join('\n') + '\n' : '_none_\n';
 writeFileSync(join(ROOT, 'GAPS.md'), gaps);
+
+// ── INSIGHTS.md — structure the folder view can't show ──────────────────────────
+// God nodes, surprising cross-zone links, communities and the questions the graph
+// is uniquely placed to answer. The human-readable audit trail over graph.json.
+let ins = `# INSIGHTS — structure of the base\n\n`;
+ins += `> Generated by \`scripts/reindex.mjs\`. Do not edit by hand.\n`;
+ins += `> The base is a graph: \`[[wikilinks]]\` are edges. This surfaces what folders hide —\n`;
+ins += `> the most-connected concepts, hidden cross-zone links, and questions worth asking.\n\n`;
+ins += `Nodes: **${active.length}** · edges: **${edgeSet.size}** · communities: **${communities.length}** · orphans: **${orphanArts.length}** · rebuilt ${stamp}\n`;
+ins += `\n## 🧭 God nodes (most connected — everything flows through these)\n\n`;
+ins += godNodes.length
+  ? godNodes.map((n, i) => `${i + 1}. **[${n.title}](${n.path})** — ${n.degree} link(s) · \`${n.zone}\``).join('\n') + '\n'
+  : '_no links yet — connect articles with [[slug]]_\n';
+ins += `\n## 🔗 Surprising connections (links across zones, rarest pairing first)\n\n`;
+ins += surprises.length
+  ? surprises.map(e => `- [${bySlug[e.a].title}](${bySlug[e.a].path}) \`${e.za}\` ↔ [${bySlug[e.b].title}](${bySlug[e.b].path}) \`${e.zb}\``).join('\n') + '\n'
+  : '_no cross-zone links yet_\n';
+ins += `\n## 🌐 Communities (clusters by link density, independent of folders)\n\n`;
+if (communities.length) {
+  for (const c of communities.slice(0, 12)) {
+    const zoneStr = Object.entries(c.zones).sort((a, b) => b[1] - a[1]).map(([z, n]) => `${z}×${n}`).join(', ');
+    ins += `- **${c.label}** — ${c.size} node(s) · ${zoneStr}\n`;
+  }
+} else ins += '_not enough link structure yet_\n';
+ins += `\n## ❓ Suggested questions (the graph can answer these)\n\n`;
+ins += questions.length ? questions.map(q => `- ${q}`).join('\n') + '\n' : '_—_\n';
+writeFileSync(join(ROOT, 'INSIGHTS.md'), ins);
+
+// ── graph.json — portable node/edge graph for tools, queries and the viewer ─────
+// Node-link format (like Graphify's graph.json): stable slugs, degree + community
+// per node, undirected edge count. Safe to commit; regenerated every reindex.
+const graph = {
+  generatedAt: new Date().toISOString(),
+  directed: false,
+  stats: { nodes: active.length, edges: edgeSet.size, communities: communities.length, orphans: orphanArts.length },
+  nodes: active.map(a => ({
+    id: a.slug, label: a.title, path: a.path, zone: zoneOf(a), type: a.type,
+    degree: degreeOf(a.slug),
+    community: communityIndex.has(a.slug) ? communityIndex.get(a.slug) : -1,
+    confidence: a.confidence || undefined,
+  })),
+  edges: edgeList,
+  communities: communities.map(({ id, label, hub, size, zones }) => ({ id, label, hub, size, zones })),
+  godNodes: godNodes.map(n => n.slug),
+};
+writeFileSync(join(ROOT, 'graph.json'), JSON.stringify(graph, null, 2));
 
 // ── BOARD.md — kanban view of the tasks/ zone (generated, gitignored) ─────────
 // One task = one file (no merge conflicts between users). Columns by task status,
@@ -494,6 +672,8 @@ if (present.length) {
 idx += `\n## 🔎 Lookup\n\n`;
 idx += `- **[INDEX-facets.md](INDEX-facets.md)** — jump by tag or entity (client / product / person).\n`;
 idx += `- Free-text: grep titles/summaries/tags, e.g. \`rg -i "term" */*.md\`.\n`;
+if (edgeSet.size) idx += `- **[INSIGHTS.md](INSIGHTS.md)** — structure: god nodes, surprising cross-zone links, suggested questions.\n`;
+if (existsSync(join(ROOT, 'LESSONS.md'))) idx += `- **[LESSONS.md](LESSONS.md)** — work memory: preferred sources, contested facts, known dead ends (from \`/kb-reflect\`).\n`;
 if (gapsTotal) idx += `- **[GAPS.md](GAPS.md)** — ${gapsTotal} incomplete/unverified item(s) (⚠ = treat as unknown).\n`;
 if (taskArts.length) idx += `- **[BOARD.md](BOARD.md)** — task board (kanban): **${openCount} open**, ${taskArts.length - openCount} done.\n`;
 
@@ -527,14 +707,19 @@ const data = {
   features: config.features || {},
   version: config.version || '',
   generatedAt: new Date().toISOString(),
+  // Graph layer for the viewer Map view: communities (colour), god nodes (highlight).
+  communities: communities.map(({ id, label, hub, size, zones }) => ({ id, label, hub, size, zones })),
+  godNodes: godNodes.map(n => n.slug),
   articles: articles.map(a => ({
     slug: a.slug, title: a.title, path: a.path, category: a.category,
     type: a.type, resource: a.resource,
     summary: a.summary, tags: a.tags, entities: a.entities, aka: a.aka,
     status: a.status, updated: a.updated,
-    source: a.source, authority: a.authority, author: a.author,
+    source: a.source, authority: a.authority, confidence: a.confidence, author: a.author,
     assignees: a.assignees, project: a.project, due: a.due, priority: a.priority, recur: a.recur,
     links: a.links, backlinks: backlinks[a.slug],
+    // Graph metrics (degree = connectivity, community id or -1) — power the Map view.
+    degree: degreeOf(a.slug), community: communityIndex.has(a.slug) ? communityIndex.get(a.slug) : -1,
     html: mdToHtml(a._body, slugs),
   })),
   briefs: briefs.map(b => ({

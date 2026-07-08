@@ -1,0 +1,5 @@
+[
+  { "q": "how do I deploy the site to production", "expect": "deploy-guide" },
+  { "q": "what is our client onboarding process", "expect": "onboarding" },
+  { "q": "who owns the marketing budget", "expect": "some-person-slug" }
+]
