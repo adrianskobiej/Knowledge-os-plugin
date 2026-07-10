@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.31.0
+
+- **Task board: assignee filter + sort switch.** The viewer's board grew a toolbar: an
+  **Assignee dropdown** — a searchable list of everyone found in the tasks (with each
+  person's open-card count) plus **All**; type to sift, Enter picks the first hit, Escape
+  or an outside click closes. Pick a person to see only their cards ("what's on my
+  plate"). A dropdown, not chips, so the toolbar stays one line however big the team
+  gets. **Sort: due / priority** reorders every column (P0→P1→P2→P3→none, due date as
+  tie-break; done keeps recency first). The choice persists in `localStorage['kb-board']`
+  and is validated against current data, so a stale saved assignee never leaves the board
+  silently empty.
+
 ## 0.30.0
 
 - **Offer consultant moved to PRO.** `/kb-offer` and the bundled `offer-forge` skill (released here as

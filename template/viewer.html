@@ -59,6 +59,30 @@
   .bcard small { color:var(--muted); display:block; margin-top:3px; }
   .bcard.overdue { border-color:#c0392b; }
   .bempty { color:var(--muted); }
+  /* Board toolbar — assignee filter + sort switch (state kept in localStorage['kb-board']) */
+  .bbar { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:0 0 14px; }
+  .blab { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:600; margin:0 2px; }
+  .bsep { width:1px; height:16px; background:var(--line); margin:0 4px; }
+  .fbtn { border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:14px;
+          padding:3px 10px; font-size:12px; cursor:pointer; font-family:inherit; }
+  .fbtn:hover { background:var(--chip); border-color:var(--accent); }
+  .fbtn.on { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+  /* Assignee dropdown — a searchable list instead of one chip per person (scales with the team). */
+  .bdrop { position:relative; }
+  .bdrop-panel { position:absolute; top:calc(100% + 6px); left:0; z-index:60; min-width:220px; max-height:300px;
+                 background:var(--panel); border:1px solid var(--line); border-radius:10px;
+                 box-shadow:0 10px 26px rgba(0,0,0,.14); padding:8px; display:flex; flex-direction:column; gap:6px; }
+  .bdrop-panel[hidden] { display:none; }
+  .bdrop-search { border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:7px;
+                  padding:5px 9px; font-size:12.5px; font-family:inherit; }
+  .bdrop-search:focus { outline:none; border-color:var(--accent); }
+  .bdrop-list { overflow:auto; display:flex; flex-direction:column; gap:2px; }
+  .bdrop-list button { display:flex; align-items:center; gap:8px; border:0; background:transparent; color:var(--ink);
+                       font:inherit; font-size:12.5px; padding:5px 8px; border-radius:7px; cursor:pointer; text-align:left; }
+  .bdrop-list button:hover { background:var(--chip); }
+  .bdrop-list button.on { background:var(--accent); color:#fff; font-weight:600; }
+  .bdrop-list .bcnt { margin-left:auto; color:var(--muted); font-size:11px; }
+  .bdrop-list button.on .bcnt { color:inherit; }
   .wikilink.broken { color:var(--broken); text-decoration:line-through; }
   .backlinks { margin-top:48px; padding-top:18px; border-top:1px solid var(--line); }
   .backlinks h4 { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 8px; }
@@ -184,16 +208,43 @@
     document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', e.dataset.brief === path));
     document.getElementById('main').scrollTop = 0;
   }
-  function showBoard() {
+  function showBoard(keepScroll) {
     const c = document.getElementById('content');
     const tasks = D.articles.filter(a => a.path.split('/')[0] === 'tasks');
     const today = new Date().toISOString().slice(0, 10);
     const states = [['todo', '📥 todo'], ['doing', '🔨 doing'], ['blocked', '🚧 blocked'], ['done', '✅ done']];
-    let html = '<article><h1>📌 Task board</h1><div class="board">';
+    // Toolbar state — assignee filter + sort order; persisted, but validated against current data
+    // (a stale saved assignee must not leave the board silently empty).
+    let bst = { who: '', sort: 'due' };
+    try { bst = Object.assign(bst, JSON.parse(localStorage.getItem('kb-board') || '{}')); } catch { /* private mode */ }
+    const people = [...new Set(tasks.flatMap(t => t.assignees || []))].sort((a, b) => a.localeCompare(b));
+    if (bst.who && !people.includes(bst.who)) bst.who = '';
+    if (bst.sort !== 'priority') bst.sort = 'due';
+    const pri = t => t.priority === 'P0' ? 0 : t.priority === 'P1' ? 1 : t.priority === 'P2' ? 2 : t.priority === 'P3' ? 3 : 9;
+    const attr = s => escapeHtml(s).replace(/"/g, '&quot;');
+    const openFor = who => tasks.filter(t => t.status !== 'done' && (!who || (t.assignees || []).includes(who))).length;
+    let html = '<article><h1>📌 Task board</h1>'
+      + '<div class="bbar"><span class="blab">Assignee</span>'
+      + '<div class="bdrop">'
+      + '<button class="fbtn bdrop-btn' + (bst.who ? ' on' : '') + '">' + (bst.who ? '👤 ' + escapeHtml(bst.who) : 'All') + ' ▾</button>'
+      + '<div class="bdrop-panel" hidden><input class="bdrop-search" type="text" placeholder="Search…">'
+      + '<div class="bdrop-list">'
+      + '<button data-who="" data-name="all"' + (!bst.who ? ' class="on"' : '') + '>All<span class="bcnt">' + openFor('') + '</span></button>'
+      + people.map(p => '<button data-who="' + attr(p) + '" data-name="' + attr(p.toLowerCase()) + '"'
+          + (bst.who === p ? ' class="on"' : '') + '>👤 ' + escapeHtml(p) + '<span class="bcnt">' + openFor(p) + '</span></button>').join('')
+      + '</div></div></div>'
+      + '<span class="bsep"></span><span class="blab">Sort</span>'
+      + '<button class="fbtn' + (bst.sort === 'due' ? ' on' : '') + '" data-sort="due">🗓 due</button>'
+      + '<button class="fbtn' + (bst.sort === 'priority' ? ' on' : '') + '" data-sort="priority">⚡ priority</button></div>'
+      + '<div class="board">';
     for (const [st, label] of states) {
-      let col = tasks.filter(t => t.status === st);
-      if (st === 'done') col = col.sort((x, y) => (y.updated || '').localeCompare(x.updated || '')).slice(0, 15);
-      else col = col.sort((x, y) => (x.due || '9999').localeCompare(y.due || '9999'));
+      let col = tasks.filter(t => t.status === st && (!bst.who || (t.assignees || []).includes(bst.who)));
+      if (st === 'done') {
+        col = col.sort((x, y) => (y.updated || '').localeCompare(x.updated || '')).slice(0, 15);
+        if (bst.sort === 'priority') col.sort((x, y) => pri(x) - pri(y) || (y.updated || '').localeCompare(x.updated || ''));
+      } else col = col.sort((x, y) => bst.sort === 'priority'
+        ? (pri(x) - pri(y) || (x.due || '9999').localeCompare(y.due || '9999'))
+        : ((x.due || '9999').localeCompare(y.due || '9999') || pri(x) - pri(y)));
       html += '<div class="bcol"><h3>' + label + ' (' + col.length + ')</h3>';
       for (const t of col) {
         const od = t.due && t.due < today && st !== 'done';
@@ -210,8 +261,27 @@
     }
     html += '</div></article>';
     c.innerHTML = html;
+    // Toolbar — sort buttons re-render in place (keeping scroll); the assignee dropdown
+    // sifts its list as you type, Enter picks the first visible row, Escape / outside click closes.
+    const save = () => { try { localStorage.setItem('kb-board', JSON.stringify(bst)); } catch { /* fine — just not remembered */ } };
+    c.querySelectorAll('.bbar button[data-sort]').forEach(b => b.onclick = () => { bst.sort = b.dataset.sort; save(); showBoard(true); });
+    const drop = c.querySelector('.bdrop'), panel = drop.querySelector('.bdrop-panel'),
+          search = drop.querySelector('.bdrop-search'), rows = [...panel.querySelectorAll('.bdrop-list button')];
+    const sift = () => { const q = search.value.trim().toLowerCase(); rows.forEach(r => { r.style.display = r.dataset.name.includes(q) ? '' : 'none'; }); };
+    const close = () => { panel.hidden = true; document.removeEventListener('click', outside, true); };
+    const outside = e => { if (!document.body.contains(drop) || !drop.contains(e.target)) close(); };
+    drop.querySelector('.bdrop-btn').onclick = () => {
+      if (panel.hidden) { panel.hidden = false; search.value = ''; sift(); search.focus(); document.addEventListener('click', outside, true); }
+      else close();
+    };
+    search.oninput = sift;
+    search.onkeydown = e => {
+      if (e.key === 'Enter') { const hit = rows.find(r => r.style.display !== 'none'); if (hit) hit.click(); }
+      else if (e.key === 'Escape') close();
+    };
+    rows.forEach(r => r.onclick = () => { bst.who = r.dataset.who; close(); save(); showBoard(true); });
     document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', !!e.dataset.board));
-    document.getElementById('main').scrollTop = 0;
+    if (!keepScroll) document.getElementById('main').scrollTop = 0;
   }
   function showSettings() {
     const c = document.getElementById('content');
