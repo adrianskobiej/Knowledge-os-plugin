@@ -5,7 +5,7 @@
     {
       "name": "knowledge-os",
       "source": "./",
-      "description": "OKF-compatible company knowledge base: Markdown + offline HTML viewer, scale-ready index with facets & search-by-meaning, /kb-* commands, built-in agent procedures (onboarding, dedup, capture). Tool-agnostic (Claude Code, Codex, Antigravity)."
+      "description": "Myriad Self OS — OKF-compatible company knowledge base: Markdown + offline HTML viewer, scale-ready index with facets & search-by-meaning, /kb-* commands, built-in agent procedures (onboarding, dedup, capture). Tool-agnostic (Claude Code, Codex, Antigravity)."
     }
   ]
 }

@@ -709,7 +709,7 @@ writeFileSync(join(ROOT, 'INDEX.md'), idx);
 // ── kb-data.js (rich, for viewer.html) ──────────────────────────────────────
 // `config` is already loaded + validated above.
 const data = {
-  company: config.company || { name: 'Knowledge base' },
+  company: config.company || { name: 'Myriad Self OS' },
   // Feature toggles + base version — the viewer shows them (⚙️ Settings view);
   // agents flip them via /kb-settings (edits knowledge.config.json).
   features: config.features || {},

@@ -1,4 +1,4 @@
-# knowledge-os
+# Myriad Self OS
 
 **A portable company knowledge base that lives in Markdown and works with any AI coding agent.**
 
@@ -21,7 +21,7 @@ Company knowledge ends up scattered across wikis, Google Docs, Slack threads and
 
 Most tools optimize for one and bolt the other on. And whatever you pick is usually locked to a single editor or AI assistant.
 
-## What knowledge-os does
+## What Myriad Self OS does
 
 - **Markdown as the single source of truth.** Every article is a `.md` file with a small frontmatter block. Diff-able, portable, git-friendly, no lock-in.
 - **Two compiled views from the same source:**

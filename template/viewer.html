@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Defense-in-depth: block <base> hijack, plugins/embeds and form exfil (no forms/objects are used). -->
 <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'none'; form-action 'none'">
-<title>Knowledge base</title>
+<title>Myriad Self OS</title>
 <script src="kb-data.js"></script>
 <style>
   :root {
@@ -68,7 +68,7 @@
 </head>
 <body>
   <nav id="side">
-    <div id="brand"><b id="co-name">Knowledge base</b><span id="co-meta"></span></div>
+    <div id="brand"><b id="co-name">Myriad Self OS</b><span id="co-meta"></span></div>
     <input id="search" placeholder="Search… (title, summary, tag, alias, entity)">
     <div id="tree"></div>
   </nav>
@@ -80,7 +80,9 @@
   D.briefs = D.briefs || [];
   const bySlug = Object.fromEntries(D.articles.map(a => [a.slug, a]));
   const byBrief = Object.fromEntries(D.briefs.map(b => [b.path, b]));
-  document.getElementById('co-name').textContent = (D.company && D.company.name) || 'Knowledge base';
+  const coName = (D.company && D.company.name) || 'Myriad Self OS';
+  document.getElementById('co-name').textContent = coName;
+  if (coName !== 'Myriad Self OS') document.title = coName + ' · Myriad Self OS';
   document.getElementById('co-meta').textContent =
     D.articles.length + ' articles · ' + (D.generatedAt || '').slice(0, 10);
 

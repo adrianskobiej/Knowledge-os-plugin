@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.30.0
+
+- **Rebrand — the product is now “Myriad Self OS”.** The viewer carries the new name in the browser: the tab title reads “Myriad Self OS”, and a base with its own company name shows “<Company> · Myriad Self OS”; the sidebar brand falls back to the product name when no company is configured. Command slugs (`/kb-*`) and the plugin id `knowledge-os` are unchanged, so existing installs keep working — repo/plugin naming follows separately with the GitHub rename. Descriptions carry the new name too: plugin.json / marketplace.json, README title and the GitHub About.
+
 ## 0.29.0
 
 - **`/kb-offer` — the offer consultant (Grand Slam Offer).** A guided funnel that turns a raw idea into a client-ready **offer document** using Alex Hormozi's method ($100M Offers + Lost Chapters + Closing Playbook). Always opens with **"offer for us or for a client?"** — for-us pulls context from the base and asks less; for-a-client runs an intake interview first. Then it walks **11 stages** (market/avatar, pricing & tiers, value equation, problems→solutions, trim & stack, scarcity, urgency, bonuses, guarantees, MAGIC naming, document) and ships the document plus an internal "how to sell it" price-defense section.
