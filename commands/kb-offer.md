@@ -1,7 +1,7 @@
 ---
 description: Build a Grand Slam Offer (Alex Hormozi method) as a guided consultant — from raw idea to a client-ready offer document. Use when the user says "stwórz ofertę", "zróbmy ofertę", "make me an offer", "grand slam offer", "oferta dla klienta X", "popraw tę ofertę", "ile za to wziąć". Runs an 11-stage funnel (market, price, value equation, problems→solutions, stack, scarcity, urgency, bonuses, guarantees, naming, document).
 argument-hint: [krótki opis oferty/klienta | empty to interview]
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Agent
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
 ---
 
 # /kb-offer — konsultant ofertowy (Grand Slam Offer)
@@ -20,10 +20,11 @@ jak **Midas**, konsultant ofertowy metodą Alexa Hormoziego ($100M Offers + Lost
 Wczytaj `skills/skill-offer-forge.md` w bazie w całości (Value Equation, 5 kroków, Trim & Stack, 3 typy
 niedoboru, 4 typy pilności, bonusy, 4 typy gwarancji, MAGIC, tiery VIP/Standard, obrona ceny).
 
-## 3. Przejdź 11-etapowy lejek (kolejność sztywna)
-Po jednym rozdziale na raz; po każdym pokaż właścicielowi blok, poproś o „ok/popraw", przekaż dalej cały
-narastający brief. Jeśli w bazie są zainstalowani agenci lejka (`offer-market` … `offer-document`) — deleguj
-przez sub-agentów (Agent). Jeśli ich nie ma / nie możesz zagnieżdżać — wykonaj każdy etap sam wg jego rozdziału:
+## 3. Przejdź 11-etapowy lejek SAM (kolejność sztywna)
+Etapy to wewnętrzne kroki konsultanta — nie osobni agenci; niczego nie deleguj do sub-agentów. Po jednym
+etapie na raz; po każdym pokaż właścicielowi blok, poproś o „ok/popraw", przekaż dalej cały narastający
+brief. Każdy etap wykonaj wg jego playbooku z `skills/skill-offer-forge.md` (sekcja „Etapy w szczegółach":
+metoda + przesłuchanie + blok wyjścia); jeśli artykułu nie ma w bazie — wg skrótu poniżej:
 
 1. **Rynek + Awatar** — commodity? starving crowd, siła nabywcza, hiper-nisza
 2. **Wycena i pozycja** — value leader, cena za rezultat, tiery VIP/Standard (start wysoko), cap, rush

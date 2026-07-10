@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.29.1
+
+- **Offer funnel folded INTO the consultant — no per-stage agents.** The 11 stages (market … document) are now the consultant's own internal steps: `/kb-offer` and the bundled `offer-forge` skill no longer dispatch `offer-market` … `offer-document` sub-agents — one Midas, eleven steps inside him. Each stage's playbook (method + interrogation questions + brief-block template) lives in the base article `skills/skill-offer-forge.md` under "Etapy w szczegółach"; the bundled SKILL.md stays self-sufficient without it.
+
 ## 0.29.0
 
 - **`/kb-offer` — the offer consultant (Grand Slam Offer).** A guided funnel that turns a raw idea into a client-ready **offer document** using Alex Hormozi's method ($100M Offers + Lost Chapters + Closing Playbook). Always opens with **"offer for us or for a client?"** — for-us pulls context from the base and asks less; for-a-client runs an intake interview first. Then it walks **11 stages** (market/avatar, pricing & tiers, value equation, problems→solutions, trim & stack, scarcity, urgency, bonuses, guarantees, MAGIC naming, document) and ships the document plus an internal "how to sell it" price-defense section.

@@ -28,27 +28,28 @@ decyzja → dalej.
 - **Dla klienta** → zrób wywiad wstępny (model, co sprzedaje i za ile, awatar, konkurencja, marże,
   cel, czego nie chce). Najpierw spytaj: *„szybka oferta czy pełny wywiad?"* i uszanuj wybór.
 
-## Krok 1 — przejdź lejek (kolejność sztywna)
-Uruchamiaj agentów-specjalistów po kolei i przekazuj każdemu **cały narastający brief**. Jeśli
-działasz w sesji głównej, deleguj przez sub-agentów (Task/Agent); jeśli jesteś sub-agentem i nie
-możesz zagnieżdżać — wykonaj każdy etap sam, stosując jego rozdział z metody.
+## Krok 1 — przejdź lejek SAM (kolejność sztywna)
+Etapy to Twoje WEWNĘTRZNE kroki — nie osobni agenci. Niczego nie deleguj do sub-agentów: każdy etap
+wykonujesz sam i budujesz **cały narastający brief** (każdy etap dostaje wszystko, co ustalono
+wcześniej). Playbooki etapów (metoda + przesłuchanie + blok wyjścia): artykuł
+`skills/skill-offer-forge.md` w bazie, sekcja „Etapy w szczegółach"; bez artykułu — skrót poniżej.
 
-1. `offer-market` — rynek + awatar (commodity? starving crowd, siła nabywcza)
-2. `offer-pricing` — pozycja premium, kotwica ceny, dźwignie, tiery VIP/Standard, cap, rush premium
-3. `offer-value` — Value Equation (Dream × Szansa ÷ Czas × Wysiłek), które dźwignie ruszyć
-4. `offer-problems` — pełna lista problemów (sekwencyjnie) → odwrócona w rozwiązania
-5. `offer-stack` — Trim & Stack: zostaw low-cost/high-value + high-cost/high-value, wyceń pozycje
-6. `offer-scarcity` — 1 z 3 typów niedoboru (uczciwie)
-7. `offer-urgency` — 1 z 4 typów pilności
-8. `offer-bonuses` — bonusy zamiast rabatu, nazwane i wycenione
-9. `offer-guarantees` — typ gwarancji wg marży/ticketu, „jeśli nie X w Y, to Z"
-10. `offer-naming` — MAGIC: nazwa oferty + nazwy pozycji stosu
-11. `offer-document` — złóż **dokument ofertowy** + osobną sekcję „Jak to sprzedać" (obrona ceny)
+1. **Rynek + Awatar** — rynek + awatar (commodity? starving crowd, siła nabywcza)
+2. **Wycena i pozycja** — pozycja premium, kotwica ceny, dźwignie, tiery VIP/Standard, cap, rush premium
+3. **Równanie wartości** — Value Equation (Dream × Szansa ÷ Czas × Wysiłek), które dźwignie ruszyć
+4. **Problemy → Rozwiązania** — pełna lista problemów (sekwencyjnie) → odwrócona w rozwiązania
+5. **Stos oferty** — Trim & Stack: zostaw low-cost/high-value + high-cost/high-value, wyceń pozycje
+6. **Niedobór** — 1 z 3 typów niedoboru (uczciwie)
+7. **Pilność** — 1 z 4 typów pilności
+8. **Bonusy** — bonusy zamiast rabatu, nazwane i wycenione
+9. **Gwarancja** — typ gwarancji wg marży/ticketu, „jeśli nie X w Y, to Z"
+10. **Nazwa (MAGIC)** — nazwa oferty + nazwy pozycji stosu
+11. **Dokument** — złóż **dokument ofertowy** + osobną sekcję „Jak to sprzedać" (obrona ceny)
 
 **Jeden etap = jedna wiadomość** (patrz TRYB KONSULTACYJNY wyżej). Po każdym etapie: rada + pytania + blok, a potem STÓJ i czekaj na decyzję. Nie łącz etapów.
 
 ## Krok 2 — dowieź dokument
-`offer-document` produkuje dokument gotowy do przedstawienia klientowi (nagłówek/nazwa, dla kogo,
+Etap 11 produkuje dokument gotowy do przedstawienia klientowi (nagłówek/nazwa, dla kogo,
 co dostajesz = stos wartości z zakotwiczonymi wycenami, tiery VIP/Standard, cena+cap, gwarancja,
 niedobór+pilność, bonusy, CTA) oraz — wyraźnie oddzieloną — wewnętrzną sekcję obrony ceny
 (seeds of doubt: risk/speed/ease, walk-down VIP→Standard, odpowiedzi na „za drogo").
