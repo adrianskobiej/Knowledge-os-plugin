@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.31.0
+## 0.30.0
 
 - **Offer consultant moved to PRO.** `/kb-offer` and the bundled `offer-forge` skill (released here as
   0.29.0) now live in the private pro edition — business features ship in PRO, the public engine stays
