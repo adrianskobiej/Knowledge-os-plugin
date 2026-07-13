@@ -8,10 +8,9 @@
 
 ## 0.30.0
 
-- **Offer consultant moved to PRO.** `/kb-offer` and the bundled `offer-forge` skill (released here as
-  0.29.0) now live in the private pro edition — business features ship in PRO, the public engine stays
-  core-only: onboarding, search, board, lint, sync. Bases that already installed the skill keep it
-  (installed copies come from the base's own bundle, not this plugin).
+- **Public engine stays core-only.** Trimmed the bundle back to the core workflow — onboarding, search,
+  board, lint, sync. An optional command that had been bundled is no longer shipped here; bases that
+  already installed it keep their own copy (installed copies come from the base's own bundle, not this plugin).
 
 ## 0.28.0
 
