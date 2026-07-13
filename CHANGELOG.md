@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.30.1
+
+- **Starter config no longer ships a stale engine version.** `template/knowledge.config.json` carried
+  `0.28.0` while the engine was already `0.30.0`, so a freshly created base showed "engine v0.28.0" in
+  the viewer's ⚙️ Settings / board. Bumped to match the current release. Metadata only — no behavior change.
+
 ## 0.30.0
 
 - **Offer consultant moved to PRO.** `/kb-offer` and the bundled `offer-forge` skill (released here as
