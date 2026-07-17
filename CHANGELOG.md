@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.31.1
+
+- **Reindex lint fix.** The article scan skipped only `INDEX.md`, while zone pagination writes
+  `INDEX.pN.md` pages — so the next run scanned the generator's own output and reported false
+  "Missing frontmatter" warnings on it. Generated `INDEX(.pN).md` files are now excluded from
+  the scan. No behavior change for real articles.
+
 ## 0.31.0
 
 - **Galaxy map (🗺 Map).** The Map view grows three full layouts — **Cosmos** (a layered "second brain":

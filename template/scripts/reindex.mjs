@@ -61,7 +61,7 @@ function walk(dir, acc = []) {
     if (e.name.startsWith('.') || e.name.startsWith('_')) continue;
     const full = join(dir, e.name);
     if (e.isDirectory()) walk(full, acc);
-    else if (extname(e.name) === '.md' && e.name !== 'INDEX.md') acc.push(full);
+    else if (extname(e.name) === '.md' && !/^INDEX(\.p\d+)?\.md$/.test(e.name)) acc.push(full);
   }
   return acc;
 }
