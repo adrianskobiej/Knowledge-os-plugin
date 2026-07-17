@@ -221,6 +221,10 @@ for (const file of files) {
     due: meta.due || '',
     priority: meta.priority || '',
     recur: meta.recur || '',   // daily | weekly | monthly — recurring tasks (🔁 on the board)
+    parent: meta.parent || '',  // if set, this task is a subtask of that task slug (an epic)
+    order: meta.order || '',    // sequence within the parent (1, 2, 3…)
+    needs: meta.needs || '',    // optional dependency (slug of the step this one waits for)
+    skill: meta.skill || '',    // optional skill used for the step (shown as a chip in the plan)
     links: [...new Set(wikilinks)],
     _body: body,
   });
@@ -725,6 +729,7 @@ const data = {
     status: a.status, updated: a.updated,
     source: a.source, authority: a.authority, confidence: a.confidence, author: a.author,
     assignees: a.assignees, project: a.project, due: a.due, priority: a.priority, recur: a.recur,
+    parent: a.parent, order: a.order, needs: a.needs, skill: a.skill,   // subtask tree (epic plan in the viewer)
     links: a.links, backlinks: backlinks[a.slug],
     // Graph metrics (degree = connectivity, community id or -1) — power the Map view.
     degree: degreeOf(a.slug), community: communityIndex.has(a.slug) ? communityIndex.get(a.slug) : -1,

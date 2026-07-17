@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.31.0
+
+- **Galaxy map (🗺 Map).** The Map view grows three full layouts — **Cosmos** (a layered "second brain":
+  skills sparkle ring → memory disc with per-zone swarms → tasks ring with planets & moons → projects hex
+  ring), **Galaxy** (deterministic community clusters) and **Orbit** (hub-centric rings) — with zoom/pan,
+  node search, label-density and colour toggles, zone/cluster legend with show/hide, a Projects focus
+  dropdown, hover tooltips, drag-to-arrange with your layout remembered per base, and light/dark aware
+  rendering. All offline, one canvas, no dependencies.
+- **Pixel-art mode (▦).** An opt-in retro skin for the whole viewer — pixel display font, graph-paper +
+  scanline texture, hard "sticker" shadows, square markers, segmented progress meters, CRT-style touches —
+  remembered across sessions. Styling only: article prose stays readable, colour stays the signal.
+- **Task trees (epics) on the board and task pages.** Tasks gain `parent:`, `order:`, `needs:` and
+  `skill:` frontmatter; an epic's page shows a "📋 Plan — subtasks" panel with ordered steps, per-step
+  status and assignees and a progress bar; board cards show the same tree inline. A "⏳ Waiting on you"
+  lane surfaces subtasks whose predecessors are all done — your move.
+- **Board toolbar.** Searchable assignee filter (dropdown scales to any team size) + due/priority sort,
+  both remembered in the browser. Priority chips (P1/P2/P3) get their own colours.
+- **Projects view (📁).** Pinned Projects list + per-project detail: task history as a version log
+  (real repo versions via `repos.json` probing — GitHub release vs internal version, dirty/unpushed
+  markers — or the internal v1.N counter), in-progress list and About.
+- **Settings view (⚙️) grows stat cards and zone bars;** feature switches stay read-only with a hint to
+  ask the assistant.
+- **Fail-loud router.** A view that crashes renders a visible "⚠ View error" article instead of a blank
+  page, and one view's leftovers can never poison the next (map-mode cleanup is unconditional).
+- **Hardening:** every dynamic string in the new views goes through `escapeHtml`; backlink hrefs are
+  slug-escaped (covered by tests).
+
 ## 0.30.1
 
 - **Starter config no longer ships a stale engine version.** `template/knowledge.config.json` carried

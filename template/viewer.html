@@ -9,69 +9,493 @@
 <script src="kb-data.js"></script>
 <style>
   :root {
-    --bg: #fbfbfa; --panel: #fff; --ink: #1f2328; --muted: #6a737d;
-    --line: #e6e6e4; --accent: #2f6feb; --broken: #d1242f; --chip: #eef1f4;
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#171a21; --muted:#6b7280;
+    --line:rgba(23,26,33,.09); --accent:#4f6df5; --accent-soft:rgba(79,109,245,.10);
+    --glass:rgba(255,255,255,.78); --broken:#d1242f; --chip:#eef0f4;
+    --ok:#16a34a; --warn:#d97706; --danger:#dc2626;
+    --shadow-sm:0 1px 2px rgba(15,18,25,.05);
+    --shadow-md:0 10px 30px rgba(15,18,25,.13);
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg:#1a1b1e; --panel:#222428; --ink:#e6e6e6; --muted:#9aa0a6;
-            --line:#33363b; --accent:#6ea8fe; --broken:#ff7b72; --chip:#2c2f34; }
+    :root { --bg:#0e0f13; --panel:#16171c; --ink:#e8eaee; --muted:#9199a6;
+            --line:rgba(255,255,255,.075); --accent:#8b9dff; --accent-soft:rgba(139,157,255,.14);
+            --glass:rgba(22,23,28,.74); --broken:#ff7b72; --chip:#21232b;
+            --ok:#34d399; --warn:#fbbf24; --danger:#f87171;
+            --shadow-sm:0 1px 2px rgba(0,0,0,.45); --shadow-md:0 12px 36px rgba(0,0,0,.55); }
   }
   * { box-sizing: border-box; }
-  body { margin:0; font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  body { margin:0; font:14.5px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
          background:var(--bg); color:var(--ink); display:flex; height:100vh; }
-  #side { width:320px; flex-shrink:0; border-right:1px solid var(--line);
+  ::-webkit-scrollbar { width:9px; height:9px; }
+  ::-webkit-scrollbar-thumb { background:var(--chip); border-radius:8px; }
+  ::-webkit-scrollbar-thumb:hover { background:var(--muted); }
+  #side { width:302px; flex-shrink:0; border-right:1px solid var(--line);
           background:var(--panel); display:flex; flex-direction:column; }
-  #brand { padding:16px 18px; border-bottom:1px solid var(--line); }
-  #brand b { font-size:15px; } #brand span { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
-  #search { margin:12px; padding:8px 11px; border:1px solid var(--line); border-radius:8px;
-            background:var(--bg); color:var(--ink); font-size:14px; }
-  #tree { overflow:auto; padding:0 8px 24px; flex:1; }
-  .cat { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
-         margin:16px 10px 6px; font-weight:600; }
-  .item { padding:6px 10px; border-radius:7px; cursor:pointer; font-size:14px; }
+  #brand { padding:20px 18px 16px 20px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px; }
+  #brand > div { flex:1; min-width:0; }
+  #brand b { font-size:16px; letter-spacing:-.01em; }
+  #brand span { display:block; color:var(--muted); font-size:12px; margin-top:3px; }
+  #side-toggle, #side-open, #pixel-toggle { border:1px solid var(--line); background:transparent; color:var(--muted);
+    border-radius:9px; width:30px; height:30px; cursor:pointer; font-size:14px; line-height:1;
+    transition:background .12s, color .12s; flex-shrink:0; }
+  #side-toggle:hover, #side-open:hover, #pixel-toggle:hover { background:var(--chip); color:var(--ink); }
+  #side-open { position:fixed; top:14px; left:14px; z-index:30; display:none;
+    background:var(--glass); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); box-shadow:var(--shadow-sm); }
+  body.side-collapsed #side { display:none; }
+  body.side-collapsed #side-open { display:block; }
+  body.side-collapsed .map-bar { left:58px; max-width:calc(100% - 72px); }
+  #search { margin:14px 16px 10px; padding:10px 14px; border:1px solid var(--line); border-radius:11px;
+            background:var(--bg); color:var(--ink); font-size:13.5px; transition:border-color .15s, box-shadow .15s; }
+  #search:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  #tree { overflow:auto; padding:6px 16px 28px; flex:1; }
+  .cat { font-size:10.5px; text-transform:uppercase; letter-spacing:.09em; color:var(--muted);
+         margin:20px 13px 8px; font-weight:600; }
+  .item { padding:9px 13px; border-radius:10px; cursor:pointer; font-size:13.5px; margin:3px 0;
+          transition:background .12s; }
   .item:hover { background:var(--chip); }
-  .item.active { background:var(--accent); color:#fff; }
+  .item.active { background:var(--accent-soft); color:var(--accent); }
   .item small { display:block; color:var(--muted); font-size:11.5px; overflow:hidden;
                 text-overflow:ellipsis; white-space:nowrap; }
-  .item.active small { color:rgba(255,255,255,.85); }
-  #main { flex:1; overflow:auto; padding:40px 56px 80px; }
-  #main .wrap { max-width:760px; margin:0 auto; }
-  .meta { color:var(--muted); font-size:13px; margin:-8px 0 24px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .chip { background:var(--chip); padding:2px 9px; border-radius:20px; font-size:12px; }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:11px;
+         vertical-align:1px; flex-shrink:0; }
+  .item.active small { color:var(--accent); opacity:.72; }
+  #main { flex:1; overflow:auto; padding:52px 64px 100px; }
+  @media (max-width:900px){ #main { padding:36px 28px 80px; } }
+  #main .wrap { max-width:780px; margin:0 auto; }
+  .meta { color:var(--muted); font-size:12.5px; margin:-4px 0 38px; display:flex; gap:7px; flex-wrap:wrap; align-items:center; }
+  .chip { background:var(--chip); padding:2.5px 10px; border-radius:20px; font-size:11.5px; }
   .chip.auth { background:transparent; border:1px solid var(--line); color:var(--muted); }
-  .status-draft { color:#bf8700; }
-  article h1 { font-size:30px; margin:0 0 4px; }
-  article h2 { font-size:21px; margin:32px 0 10px; border-bottom:1px solid var(--line); padding-bottom:5px; }
-  article h3 { font-size:17px; margin:24px 0 8px; }
-  article a { color:var(--accent); }
-  article code { background:var(--chip); padding:1px 6px; border-radius:5px; font-size:.88em; }
-  article pre { background:var(--chip); padding:14px 16px; border-radius:9px; overflow:auto; }
+  .status-draft { color:var(--warn); }
+  article h1 { font-size:27px; margin:0 0 10px; letter-spacing:-.015em; }
+  article h2 { font-size:19.5px; margin:44px 0 14px; border-bottom:1px solid var(--line); padding-bottom:8px; letter-spacing:-.01em; }
+  article h3 { font-size:16px; margin:24px 0 8px; }
+  article a { color:var(--accent); text-decoration-thickness:1px; text-underline-offset:3px; }
+  article code { background:var(--chip); padding:1px 6px; border-radius:6px; font-size:.87em; }
+  article pre { background:var(--chip); padding:14px 16px; border-radius:12px; overflow:auto; }
   article pre code { background:none; padding:0; }
-  article blockquote { border-left:3px solid var(--line); margin:0; padding:2px 16px; color:var(--muted); }
-  article table { border-collapse:collapse; margin:14px 0; font-size:.92em; display:block; overflow-x:auto; }
-  article th, article td { border:1px solid var(--line); padding:6px 11px; text-align:left; vertical-align:top; }
+  article blockquote { border-left:3px solid var(--accent); margin:0; padding:2px 16px; color:var(--muted);
+                       background:var(--accent-soft); border-radius:0 10px 10px 0; }
+  article table { border-collapse:collapse; margin:14px 0; font-size:.9em; display:block; overflow-x:auto; }
+  article th, article td { border:1px solid var(--line); padding:7px 12px; text-align:left; vertical-align:top; }
   article th { background:var(--chip); font-weight:600; }
-  .board { display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap; }
-  .bcol { flex:1 1 180px; min-width:180px; background:var(--chip); border-radius:10px; padding:10px; }
-  .bcol h3 { margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
-  .bcard { background:var(--bg,#fff); border:1px solid var(--line); border-radius:8px; padding:8px 10px; margin-bottom:8px; cursor:pointer; }
-  .bcard:hover { border-color:var(--accent); }
-  .bcard small { color:var(--muted); display:block; margin-top:3px; }
-  .bcard.overdue { border-color:#c0392b; }
-  .bempty { color:var(--muted); }
-  .wikilink.broken { color:var(--broken); text-decoration:line-through; }
+  /* Task board — modern kanban (4 fixed columns, wide layout) */
+  #main.board-mode .wrap { max-width:1360px; }
+  .board { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:18px; align-items:start; margin-top:4px; }
+  @media (max-width:1100px) { .board { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+  @media (max-width:640px)  { .board { grid-template-columns:1fr; } }
+  .bcol { min-width:0; background:var(--panel); border:1px solid var(--line);
+          border-radius:14px; padding:14px; box-shadow:var(--shadow-sm); border-top:3px solid var(--bcol,var(--accent)); }
+
+  .bhead { display:flex; align-items:center; gap:7px; margin:0 2px 13px; font-size:12px;
+           text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:600; }
+  .bdot { width:8px; height:8px; border-radius:50%; background:var(--bcol,var(--accent)); }
+  .bcount { margin-left:auto; background:var(--chip); border-radius:12px; padding:0 8px; font-size:11px; }
+  /* Board toolbar — assignee filter + sort switch (state kept in localStorage['kb-board']).
+     .fbtn rides on .mbtn so hover/press and the pixel-mode skin apply unchanged. */
+  .bbar { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:2px 0 14px; }
+  .bbar .blab { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:600; margin:0 2px; }
+  .bbar .bsep { width:1px; height:16px; background:var(--line); margin:0 5px; }
+  .bbar .fbtn { border-radius:14px; padding:3px 11px; font-size:12px; font-family:inherit; }
+  .fbtn.on { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:600; }
+  /* Assignee dropdown — a searchable list instead of one chip per person (scales with many assignees). */
+  .bdrop { position:relative; }
+  .bdrop-panel { position:absolute; top:calc(100% + 6px); left:0; z-index:60; min-width:240px; max-height:320px;
+                 background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow-md);
+                 padding:8px; display:flex; flex-direction:column; gap:6px; }
+  .bdrop-panel[hidden] { display:none; }
+  .bdrop-search { border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:8px;
+                  padding:6px 10px; font-size:12.5px; font-family:inherit; }
+  .bdrop-search:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .bdrop-list { overflow:auto; display:flex; flex-direction:column; gap:2px; }
+  .bdrop-list button { display:flex; align-items:center; gap:8px; border:0; background:transparent; color:var(--ink);
+                       font:inherit; font-size:12.5px; padding:6px 9px; border-radius:8px; cursor:pointer; text-align:left; }
+  .bdrop-list button:hover { background:var(--chip); }
+  .bdrop-list button.on { background:var(--accent-soft); color:var(--accent); font-weight:600; }
+  .bdrop-list .bcnt { margin-left:auto; color:var(--muted); font-size:11px; }
+  .bdrop-list button.on .bcnt { color:inherit; }
+  .bcard { background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:11px 13px;
+           margin-bottom:10px; cursor:pointer; transition:transform .12s, box-shadow .12s, border-color .12s; }
+  .bcard:hover { border-color:var(--accent); transform:translateY(-1px); box-shadow:var(--shadow-md); }
+  .bcard .btitle { font-size:13.5px; line-height:1.45; }
+  .btags { display:flex; gap:5px; flex-wrap:wrap; margin-top:8px; }
+  .btag { background:var(--chip); border-radius:14px; padding:1px 8px; font-size:10.5px; color:var(--muted); }
+  .btag.av { background:var(--accent-soft); color:var(--accent); font-weight:600; }
+  
+  .btag.due-over { background:transparent; border:1px solid var(--danger); color:var(--danger); }
+  /* Priority colours — P1 urgent (red), P2 (amber), P3 (blue) */
+
+  .bcard.overdue { border-color:var(--danger); }
+  
+  /* Subtasks (drzewa zadań) — nested plan on the epic card + progress */
+  .bcard.bepic { border-left:3px solid var(--accent); }
+  .bprog { display:flex; align-items:center; gap:8px; margin-top:9px; font-size:11px; color:var(--muted); }
+  .bprog .bar { flex:1; height:5px; border-radius:4px; background:var(--chip); overflow:hidden; }
+  .bprog .bar i { display:block; height:100%; background:var(--ok); border-radius:4px; }
+
+  .bsubs { margin-top:8px; display:flex; flex-direction:column; gap:4px; }
+  .bsub { display:flex; align-items:center; gap:7px; font-size:12px; padding:3px 7px; border-radius:8px;
+          background:var(--panel); border:1px solid var(--line); }
+  .bsub:hover { border-color:var(--accent); }
+  .bsub .num { color:var(--muted); font-size:10px; min-width:13px; text-align:right; }
+  .bsub .sdot { width:8px; height:8px; border-radius:50%; flex-shrink:0; background:var(--muted); }
+
+  .bsub .sttl { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  
+  /* Task detail — the plan (ordered subtasks with the people assigned) */
+  .plan { margin-top:26px; }
+  .plan h3 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+             display:flex; align-items:center; gap:12px; margin:0 0 10px; }
+  .plan h3 .bprog { margin:0; flex:0 1 240px; }
+  .step { display:flex; align-items:center; gap:11px; padding:11px 13px; border:1px solid var(--line);
+          border-left:3px solid var(--sc,var(--muted)); border-radius:12px; margin:7px 0; background:var(--panel);
+          cursor:pointer; transition:border-color .12s, transform .12s; }
+  .step:hover { border-color:var(--accent); transform:translateX(2px); }
+
+  .step .num { width:23px; height:23px; border-radius:50%; background:var(--chip); color:var(--muted);
+               display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; font-weight:600; }
+  .step .sttl { flex:1; min-width:0; font-size:13.5px; }
+  
+  .step .btag.st { text-transform:uppercase; letter-spacing:.04em; font-size:9.5px; }
+
+  .parent-link { margin:16px 0 2px; font-size:12.5px; color:var(--muted); }
+  .parent-link a { color:var(--accent); }
+  /* ⏳ "Waiting on you" — human-gated steps that are your turn now */
+  .waitlane { border:1px solid var(--warn); background:transparent; border-radius:14px; padding:10px 14px; margin:0 0 16px; }
+  .wl-head { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:var(--warn);
+             text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
+  .wl-head .bcount { margin-left:0; }
+  .wl-items { display:flex; flex-wrap:wrap; gap:8px; }
+  .wl-item { display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--line);
+             border-radius:10px; padding:7px 11px; cursor:pointer; font-size:13px; transition:border-color .12s; }
+  .wl-item:hover { border-color:var(--warn); }
+
+  .bempty { color:var(--muted); font-size:12.5px; display:block; text-align:center;
+            border:1px dashed var(--line); border-radius:10px; padding:14px 10px; opacity:.85; }
+  
   .backlinks { margin-top:48px; padding-top:18px; border-top:1px solid var(--line); }
-  .backlinks h4 { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 8px; }
-  .backlinks a { display:inline-block; margin:0 8px 6px 0; }
-  #empty { color:var(--muted); text-align:center; margin-top:80px; }
+  .backlinks h4 { font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin:0 0 8px; }
+  .backlinks a { display:inline-block; margin:0 8px 6px 0; color:var(--accent); }
+  #empty { color:var(--muted); text-align:center; margin-top:90px; }
+  /* Map view (whiteboard-style graph of the whole base) */
+  #main.map-mode { padding:0; overflow:hidden; }
+  #main.map-mode .wrap { max-width:none; margin:0; height:100%; }
+  #map-wrap { position:relative; height:100%;
+              background:radial-gradient(1100px 640px at 52% 36%, var(--accent-soft), transparent 68%), var(--bg); }
+  #map-canvas { display:block; width:100%; height:100%; cursor:grab; }
+  #map-canvas.dragging { cursor:grabbing; }
+  .map-bar { position:absolute; top:14px; left:14px; display:flex; gap:7px; align-items:center;
+             background:var(--glass); -webkit-backdrop-filter:blur(18px) saturate(1.35); backdrop-filter:blur(18px) saturate(1.35);
+             border:1px solid var(--line); border-radius:14px;
+             padding:8px 11px; box-shadow:var(--shadow-md); flex-wrap:wrap; max-width:calc(100% - 28px); }
+  .map-bar input[type=text] { border:1px solid var(--line); background:var(--bg); color:var(--ink);
+             border-radius:9px; padding:6px 11px; font-size:13px; width:172px; transition:border-color .15s, box-shadow .15s; }
+  .map-bar input[type=text]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .mbtn { border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:9px;
+          padding:5.5px 11px; font-size:13px; cursor:pointer; transition:background .12s, border-color .12s; }
+  .mbtn:hover { background:var(--chip); border-color:var(--accent); }
+  .mbtn:active { transform:scale(.97); }
+  
+  #map-stats { font-size:11.5px; color:var(--muted); padding-left:2px; }
+  #map-legend { position:absolute; bottom:16px; left:14px; display:flex; gap:6px; flex-wrap:wrap; max-width:72%; }
+
+  /* Map filter bar — dropdown facets (bottom-left): zones/clusters visibility + entity focus.
+     Picking an entity lights up its connections; Reset clears every selection. */
+  #map-legend { align-items:center; }
+  .mdd { position:relative; }
+  .mdd-btn { display:flex; align-items:center; gap:6px; background:var(--glass);
+             -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+             border:1px solid var(--line); box-shadow:var(--shadow-sm); color:var(--ink);
+             border-radius:20px; padding:4px 12px; font-size:12px; cursor:pointer; user-select:none;
+             max-width:210px; white-space:nowrap; transition:border-color .12s, background .12s; }
+  .mdd-btn:hover { border-color:var(--accent); }
+  .mdd-btn.on { border-color:var(--accent); background:var(--accent-soft); }
+  .mdd-btn .car { font-size:8.5px; color:var(--muted); }
+  .mdd-btn .bx { overflow:hidden; text-overflow:ellipsis; }
+  .mdd-panel { position:absolute; bottom:calc(100% + 8px); left:0; min-width:225px; max-width:320px;
+               max-height:295px; overflow-y:auto; background:var(--glass);
+               -webkit-backdrop-filter:blur(18px) saturate(1.35); backdrop-filter:blur(18px) saturate(1.35);
+               border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow-md);
+               padding:5px; display:none; z-index:6; }
+  .mdd.open .mdd-panel { display:block; }
+  .mdd.open .mdd-btn { border-color:var(--accent); }
+  .mdd-item { display:flex; align-items:center; gap:7px; padding:5.5px 9px; border-radius:8px;
+              font-size:12.5px; cursor:pointer; user-select:none; }
+  .mdd-item:hover { background:var(--chip); }
+  .mdd-item.sel { background:var(--accent-soft); }
+  .mdd-item.off { opacity:.35; }
+  .mdd-item i { width:9px; height:9px; border-radius:50%; flex:none; display:inline-block; }
+  .mdd-item .tx { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mdd-item .cnt { margin-left:auto; color:var(--muted); font-size:11px; padding-left:8px; flex:none; }
+  #map-tip { position:absolute; pointer-events:none; background:var(--glass);
+             -webkit-backdrop-filter:blur(18px) saturate(1.3); backdrop-filter:blur(18px) saturate(1.3);
+             border:1px solid var(--line); border-radius:12px; padding:9px 12px; font-size:12.5px;
+             max-width:290px; display:none; box-shadow:var(--shadow-md); z-index:5; }
+  #map-tip b { display:block; font-size:13px; }
+  #map-tip small { color:var(--muted); }
+  /* Settings — switches, stat cards, zone rows */
+  .setcard { background:var(--panel); border:1px solid var(--line); border-radius:14px;
+             padding:5px 20px; margin:14px 0 30px; box-shadow:var(--shadow-sm); }
+  .setrow { display:flex; align-items:center; gap:15px; padding:14px 2px; border-bottom:1px solid var(--line); }
+  .setrow:last-child { border-bottom:none; }
+  .setrow .ico { width:36px; height:36px; border-radius:10px; background:var(--accent-soft);
+                 display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+  .setrow .txt { flex:1; min-width:0; }
+  .setrow .txt b { font-size:14px; display:block; }
+  .setrow .txt small { color:var(--muted); font-size:12px; }
+  .sw { width:44px; height:25px; border-radius:15px; background:var(--chip); position:relative;
+        cursor:pointer; transition:background .18s, border-color .18s; border:1px solid var(--line); flex-shrink:0; }
+  .sw i { position:absolute; top:2px; left:2px; width:19px; height:19px; border-radius:50%;
+          background:#fff; transition:left .18s; box-shadow:0 1px 3px rgba(0,0,0,.3); }
+  .sw.on { background:var(--accent); border-color:var(--accent); }
+  .sw.on i { left:21px; }
+  .sw.unset { opacity:.55; border-style:dashed; }
+  .sw:hover { border-color:var(--accent); }
+  .statgrid { display:grid; grid-template-columns:repeat(auto-fit, minmax(128px, 1fr)); gap:12px; margin:18px 0 8px; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--shadow-sm); }
+  .stat b { font-size:21px; display:block; letter-spacing:-.01em; }
+  .stat small { color:var(--muted); font-size:11.5px; }
+  .zrow { display:flex; align-items:center; gap:11px; padding:9px 2px; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .zrow:last-child { border-bottom:none; }
+  .zrow .zg { width:20px; text-align:center; font-style:normal; }
+  .zrow .zname { min-width:110px; }
+  .zrow .zbar { flex:1; height:5px; border-radius:4px; background:var(--chip); overflow:hidden; }
+  .zrow .zbar i { display:block; height:100%; border-radius:4px; }
+  .zrow .zn { min-width:34px; text-align:right; color:var(--muted); font-size:12px; }
+
+   /* 10 roadmap stages = 5×2 */
+
+  .lvchip { font-size:10.5px; background:var(--chip); color:var(--muted); border-radius:10px; padding:1px 8px; letter-spacing:.03em; }
+
+  .st { font-size:11px; border-radius:12px; padding:2px 9px; background:var(--chip); color:var(--muted); white-space:nowrap; }
+  .st.active { background:rgba(22,163,74,.14); color:var(--ok); }
+
+  #toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(14px);
+           background:var(--glass); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+           border:1px solid var(--line); border-radius:12px; padding:10px 16px; font-size:13px;
+           box-shadow:var(--shadow-md); opacity:0; pointer-events:none;
+           transition:opacity .22s, transform .22s; z-index:40; max-width:88vw; }
+  #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  /* Narrow screens: sidebar collapses to a top strip so content (incl. the map) keeps room. */
+  @media (max-width: 720px) {
+    body { flex-direction: column; }
+    #side { width:100%; max-height:38vh; border-right:none; border-bottom:1px solid var(--line); }
+    #main { padding:24px 18px 60px; }
+    #main.map-mode { padding:0; }
+    .map-bar input[type=text] { width:110px; }
+    #map-legend { max-width:calc(100% - 24px); }
+  }
+
+  /* ===== Projects (📁) — list + per-project detail (task history, version, links) ===== */
+  .wrap { --pc:#8b7cf6; }   /* projects accent (classic); greyscaled in pixel mode */
+  .proj-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:14px; margin:18px 0 6px; }
+  .proj-card { border:1px solid var(--line); border-top:3px solid var(--pc,var(--accent)); border-radius:14px;
+               padding:13px 15px; background:var(--panel); box-shadow:var(--shadow-sm); cursor:pointer;
+               display:flex; flex-direction:column; gap:8px; transition:transform .12s,box-shadow .12s,border-color .12s; }
+  .proj-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); border-color:var(--accent); }
+  .proj-top { display:flex; align-items:center; gap:8px; }
+  .proj-top b { font-size:14.5px; letter-spacing:-.01em; flex:1; min-width:0; }
+  .proj-ver { font-size:11px; font-weight:700; background:var(--pc,var(--accent)); color:#fff;
+              border-radius:8px; padding:1px 8px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  /* repo-linked version states: amber = internal version ahead of the GitHub release (unreleased/
+     unpushed work), * suffix = uncommitted changes in the working tree */
+  .proj-ver.dev { background:var(--warn,#d97706); }
+  .chip.vwarn { color:var(--warn,#d97706); font-weight:600; }
+  .proj-sum { color:var(--muted); font-size:12.5px; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2;
+              -webkit-box-orient:vertical; overflow:hidden; }
+  .proj-foot { display:flex; align-items:center; gap:7px; margin-top:auto; flex-wrap:wrap; }
+  .pchip { display:inline-flex; align-items:center; gap:5px; background:var(--chip); color:var(--muted);
+           border-radius:12px; padding:2px 9px; font-size:11.5px; }
+  .pchip.big { font-size:13px; padding:6px 12px; }
+  .pchip.big b { color:var(--ink); font-weight:600; } .pchip.big small { color:var(--muted); }
+  .proj-hero { display:flex; align-items:center; gap:11px; flex-wrap:wrap; margin:2px 0 4px; }
+  .proj-hero h1 { margin:0; }
+  .proj-link { display:inline-flex; align-items:center; gap:6px; text-decoration:none; border:1px solid var(--line);
+               border-radius:9px; padding:6px 12px; font-size:12.5px; color:var(--accent); }
+  .proj-link:hover { border-color:var(--accent); background:var(--accent-soft); }
+  .proj-ags-list { display:flex; flex-direction:row; flex-wrap:wrap; gap:7px; }
+  .proj-tasks { display:flex; flex-direction:column; gap:7px; }
+  .proj-sec { margin-top:28px; }
+  .proj-sec > h2 { font-size:15px; border:none; padding:0; margin:0 0 12px; display:flex; align-items:center; gap:9px; }
+  .changelog { border-left:2px solid var(--line); margin-left:5px; }
+  .clog { display:flex; gap:12px; align-items:baseline; padding:7px 0 7px 16px; position:relative; }
+  .clog:before { content:''; position:absolute; left:-5px; top:13px; width:8px; height:8px; border-radius:50%; background:var(--pc,var(--accent)); }
+  .clog .cv { font-size:11px; font-weight:700; color:var(--pc,var(--accent)); min-width:42px; font-variant-numeric:tabular-nums; }
+  .clog .ct { flex:1; min-width:0; font-size:13.5px; }
+  .clog .cm, .proj-tasks .step .cm { color:var(--muted); font-size:11px; white-space:nowrap; }
+  /* ===== Pixel-art skin (toggle) — this changes the STYLING only (mono font, square markers, blocky
+     panels). Colour is the SIGNAL and stays vivid everywhere: menu markers, map zones,
+     task/health/priority status. We never desaturate — colour gives the hint; the pixel styling just
+     makes it read as a game console instead of distracting. ===== */
+  :root[data-pixel="on"] { --pixfont:"SFMono-Regular",ui-monospace,Menlo,Consolas,"Courier New",monospace; }
+  /* pixel font on all labels / headings / cards / controls (NOT on article body prose) */
+  :root[data-pixel="on"] #side, :root[data-pixel="on"] #brand b, :root[data-pixel="on"] #search, :root[data-pixel="on"] .cat, :root[data-pixel="on"] .item, :root[data-pixel="on"] #main h1, :root[data-pixel="on"] #main h2, :root[data-pixel="on"] #main h3, :root[data-pixel="on"] .meta, :root[data-pixel="on"] .chip, :root[data-pixel="on"] .lvchip, :root[data-pixel="on"] .bhead, :root[data-pixel="on"] .bcard, :root[data-pixel="on"] .btag, :root[data-pixel="on"] .bcount, :root[data-pixel="on"] .bsub, :root[data-pixel="on"] .step, :root[data-pixel="on"] .plan h3, :root[data-pixel="on"] .wl-head, :root[data-pixel="on"] .wl-item, :root[data-pixel="on"] .setrow .txt b, :root[data-pixel="on"] .setrow .txt small, :root[data-pixel="on"] .stat, :root[data-pixel="on"] .zrow, :root[data-pixel="on"] .st, :root[data-pixel="on"] .mbtn, :root[data-pixel="on"] .map-bar, :root[data-pixel="on"] #toast, :root[data-pixel="on"] .backlinks h4, :root[data-pixel="on"] .proj-card, :root[data-pixel="on"] .proj-ver, :root[data-pixel="on"] .pchip, :root[data-pixel="on"] .clog, :root[data-pixel="on"] .proj-sec > h2, :root[data-pixel="on"] .proj-link{ font-family:var(--pixfont); }
+  :root[data-pixel="on"] #brand b, :root[data-pixel="on"] .cat, :root[data-pixel="on"] .bhead, :root[data-pixel="on"] .wl-head{ text-transform:uppercase; letter-spacing:.09em; }
+  :root[data-pixel="on"] #main h1, :root[data-pixel="on"] #main h2, :root[data-pixel="on"] #main h3 { letter-spacing:.01em; }
+  /* round → square everywhere (colored squares instead of dots/rings) */
+  :root[data-pixel="on"] .dot, :root[data-pixel="on"] .bdot, :root[data-pixel="on"] .bsub .sdot, :root[data-pixel="on"] .step .num, :root[data-pixel="on"] .setrow .ico, :root[data-pixel="on"] ::-webkit-scrollbar-thumb, :root[data-pixel="on"] .clog:before{ border-radius:0 !important; }
+  /* blockier panels & controls */
+  :root[data-pixel="on"] .item { border-radius:2px; }
+  :root[data-pixel="on"] .item.active { background:var(--accent-soft); box-shadow:inset 0 0 0 1.5px var(--accent); }
+  :root[data-pixel="on"] #search, :root[data-pixel="on"] .chip, :root[data-pixel="on"] .btag, :root[data-pixel="on"] .bcard, :root[data-pixel="on"] .bcol, :root[data-pixel="on"] .stat, :root[data-pixel="on"] .setcard, :root[data-pixel="on"] .step, :root[data-pixel="on"] .mbtn, :root[data-pixel="on"] .wl-item, :root[data-pixel="on"] #toast, :root[data-pixel="on"] .st, :root[data-pixel="on"] #side-toggle, :root[data-pixel="on"] #side-open, :root[data-pixel="on"] #pixel-toggle, :root[data-pixel="on"] .proj-card, :root[data-pixel="on"] .proj-ver, :root[data-pixel="on"] .pchip, :root[data-pixel="on"] .proj-link{ border-radius:3px; }
+  #pixel-toggle.on { color:var(--accent); border-color:var(--accent); }
+
+  /* ========================================================================
+     Pixel-art skin v2 — one cohesive retro-console look across EVERY board.
+     Layered on top of the skin above. Colour stays the SIGNAL; this adds
+     hard-edged "sticker" shadows, a faint graph-paper grid + scanline,
+     segmented pixel meters and tactile button presses so the whole app reads
+     as a single hand-made game UI instead of a set of unrelated dashboards.
+     ======================================================================== */
+  :root[data-pixel="on"]{
+    --pix-sh:rgba(23,26,33,.22);     /* hard offset shadow (light theme) */
+    --pix-grid:rgba(23,26,33,.05);   /* graph-paper grid */
+    --pix-scan:rgba(23,26,33,.03);   /* scanline */
+    --pix-edge:rgba(23,26,33,.14);   /* chunky inner edge */
+  }
+  @media (prefers-color-scheme:dark){
+    :root[data-pixel="on"]{
+      --pix-sh:rgba(0,0,0,.62); --pix-grid:rgba(255,255,255,.05);
+      --pix-scan:rgba(255,255,255,.028); --pix-edge:rgba(255,255,255,.12);
+    }
+  }
+  /* graph-paper + scanline texture behind the working area */
+  :root[data-pixel="on"] #main{
+    background-image:
+      repeating-linear-gradient(0deg,var(--pix-scan) 0 1px,transparent 1px 3px),
+      linear-gradient(var(--pix-grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--pix-grid) 1px,transparent 1px);
+    background-size:100% 3px,24px 24px,24px 24px;
+  }
+    :root[data-pixel="on"] #brand b{ text-shadow:1px 1px 0 var(--pix-sh); }   /* retro title */
+  /* hard "sticker" shadows on every card surface — the core of the look */
+  :root[data-pixel="on"] .bcard, :root[data-pixel="on"] .bcol, :root[data-pixel="on"] .proj-card, :root[data-pixel="on"] .setcard, :root[data-pixel="on"] .stat{
+    box-shadow:var(--pix-sh);
+  }
+  /* tactile hover-lift */
+  :root[data-pixel="on"] .bcard:hover, :root[data-pixel="on"] .proj-card:hover, :root[data-pixel="on"] .setcard:hover{
+    transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--pix-sh);
+  }
+  /* buttons + legend chips get a small hard shadow and a real press state */
+  :root[data-pixel="on"] #side-toggle, :root[data-pixel="on"] #side-open, :root[data-pixel="on"] #pixel-toggle, :root[data-pixel="on"] .mbtn, :root[data-pixel="on"] .mdd-btn{ box-shadow:2px 2px 0 var(--pix-sh); }
+  :root[data-pixel="on"] .mdd-btn, :root[data-pixel="on"] .mdd-panel,
+  :root[data-pixel="on"] .mdd-item{ border-radius:0; }
+  :root[data-pixel="on"] .mdd-panel{ box-shadow:3px 3px 0 var(--pix-sh); }
+  :root[data-pixel="on"] #side-toggle:active, :root[data-pixel="on"] #side-open:active,
+  :root[data-pixel="on"] #pixel-toggle:active, :root[data-pixel="on"] .mbtn:active{
+    transform:translate(2px,2px); box-shadow:none;
+  }
+  :root[data-pixel="on"] .chip, :root[data-pixel="on"] .pchip, :root[data-pixel="on"] .btag{ box-shadow:1.5px 1.5px 0 var(--pix-sh); }
+  /* sidebar selection reads like a highlighted menu row */
+  :root[data-pixel="on"] .item.active{ box-shadow:inset 0 0 0 2px var(--accent); }
+  /* segmented pixel meters (kanban progress bars) — fill keeps its colour */
+  :root[data-pixel="on"] .bprog .bar{
+    border-radius:0; box-shadow:inset 0 0 0 1px var(--pix-edge); }
+  :root[data-pixel="on"] .bprog .bar i{
+    border-radius:0;
+    -webkit-mask-image:repeating-linear-gradient(90deg,#000 0 5px,transparent 5px 7px);
+            mask-image:repeating-linear-gradient(90deg,#000 0 5px,transparent 5px 7px);
+  }
+  :root[data-pixel="on"] .dot, :root[data-pixel="on"] .bdot{ image-rendering:pixelated; }
+
+  /* ========================================================================
+     Pixel-art skin v3 — the retro-console identity layer (on top of v2).
+     Real bitmap display font (Press Start 2P, OFL, embedded ~11KB woff2),
+     notched 8-bit panel corners, full-screen CRT, square switches.
+     Font goes on CHROME (titles, column heads, buttons, badges) only —
+     body text and card titles stay mono for readability.
+     ======================================================================== */
+  @font-face { font-family:'PixelUI'; font-style:normal; font-weight:400; font-display:swap;
+    src:url(data:font/woff2;base64,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) format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+  @font-face { font-family:'PixelUI'; font-style:normal; font-weight:400; font-display:swap;
+    src:url(data:font/woff2;base64,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) format('woff2');
+    unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+  :root[data-pixel="on"]{ --pixdisp:'PixelUI','SFMono-Regular',ui-monospace,Menlo,monospace;
+    --pix-vig:rgba(23,26,33,.06); }
+  @media (prefers-color-scheme:dark){ :root[data-pixel="on"]{ --pix-vig:rgba(0,0,0,.20); } }
+
+  /* full-screen CRT — scanlines + soft vignette over the whole app (subtle) */
+  :root[data-pixel="on"] body::after{ content:''; position:fixed; inset:0; z-index:80; pointer-events:none;
+    background:repeating-linear-gradient(0deg,var(--pix-scan) 0 1px,transparent 1px 3px),
+               radial-gradient(130% 115% at 50% 40%,transparent 62%,var(--pix-vig) 100%); }
+  /* main keeps the graph-paper grid only (scanlines are global now) */
+  :root[data-pixel="on"] #main{
+    background-image:linear-gradient(var(--pix-grid) 1px,transparent 1px),
+                     linear-gradient(90deg,var(--pix-grid) 1px,transparent 1px);
+    background-size:24px 24px,24px 24px; }
+
+  /* ── display font: brand, dashboard titles, column/section heads, buttons, badges ── */
+  :root[data-pixel="on"] #brand b{ font-family:var(--pixdisp); font-size:10px; line-height:1.8;
+    letter-spacing:.02em; text-shadow:2px 2px 0 var(--pix-sh); }
+  :root[data-pixel="on"] #brand b::after{ content:'▮'; margin-left:6px; color:var(--accent);
+    animation:pixblink 1.4s steps(1) infinite; }
+  @keyframes pixblink{ 50%{ opacity:0; } }
+  @media (prefers-reduced-motion:reduce){ :root[data-pixel="on"] #brand b::after{ animation:none; } }
+  :root[data-pixel="on"] #main h1:has(.dot){ font-family:var(--pixdisp); font-size:16px; line-height:1.9;
+    letter-spacing:0; text-transform:uppercase; padding-bottom:14px; text-shadow:2px 2px 0 var(--pix-sh);
+    background:repeating-linear-gradient(90deg,var(--accent) 0 10px,transparent 10px 16px) 0 100% / 100% 3px no-repeat; }
+
+  :root[data-pixel="on"] .cat{ font-family:var(--pixdisp); font-size:8px; line-height:1.9; letter-spacing:.05em; }
+  :root[data-pixel="on"] .bhead, :root[data-pixel="on"] .wl-head{ font-family:var(--pixdisp); font-size:8px; letter-spacing:.05em; }
+  :root[data-pixel="on"] .mbtn{ font-family:var(--pixdisp); font-size:8px;
+    text-transform:uppercase; letter-spacing:.03em; padding-top:8px; padding-bottom:7px; }
+  :root[data-pixel="on"] .bcount, :root[data-pixel="on"] .proj-ver{ font-family:var(--pixdisp);
+    font-size:7.5px; line-height:2; letter-spacing:.02em; }
+
+  /* ── notched 8-bit corners + hard drop shadow on the hero panels ──
+     clip-path clips box-shadow, so the shadow rides along as drop-shadow(),
+     which follows the notched silhouette. Inner cards stay square+sticker. */
+  :root[data-pixel="on"] .bcol, :root[data-pixel="on"] .setcard, :root[data-pixel="on"] .stat, :root[data-pixel="on"] .proj-card, :root[data-pixel="on"] .waitlane{
+    clip-path:polygon(0 6px,6px 6px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 6px,100% 6px,
+      100% calc(100% - 6px),calc(100% - 6px) calc(100% - 6px),calc(100% - 6px) 100%,
+      6px 100%,6px calc(100% - 6px),0 calc(100% - 6px));
+    border-radius:0; box-shadow:none; filter:drop-shadow(3px 3px 0 var(--pix-sh)); }
+  :root[data-pixel="on"] .proj-card:hover, :root[data-pixel="on"] .setcard:hover{
+    transform:translate(-1px,-1px); box-shadow:none; filter:drop-shadow(4px 4px 0 var(--pix-sh)); }
+  :root[data-pixel="on"] .bcard, :root[data-pixel="on"] .wl-item, :root[data-pixel="on"] .bsub{ border-radius:0; }
+
+  /* ── game-menu sidebar: square rows, dashed hover frame, hard active frame ── */
+  :root[data-pixel="on"] .item{ border-radius:0; }
+  :root[data-pixel="on"] .item:hover{ box-shadow:inset 0 0 0 1px var(--pix-edge); }
+  :root[data-pixel="on"] #search{ border-radius:0; box-shadow:2px 2px 0 var(--pix-sh); }
+  :root[data-pixel="on"] #search:focus{ box-shadow:2px 2px 0 var(--pix-sh),0 0 0 3px var(--accent-soft); }
+  /* assignee dropdown follows the skin: sticker panel, square search + rows, inset active frame */
+  :root[data-pixel="on"] .bdrop-panel{ border-radius:3px; box-shadow:4px 4px 0 var(--pix-sh); }
+  :root[data-pixel="on"] .bdrop-search{ border-radius:0; font-family:var(--pixfont); box-shadow:2px 2px 0 var(--pix-sh); }
+  :root[data-pixel="on"] .bdrop-search:focus{ box-shadow:2px 2px 0 var(--pix-sh),0 0 0 3px var(--accent-soft); }
+  :root[data-pixel="on"] .bdrop-list button{ border-radius:2px; font-family:var(--pixfont); }
+  :root[data-pixel="on"] .bdrop-list button:hover{ box-shadow:inset 0 0 0 1px var(--pix-edge); }
+  :root[data-pixel="on"] .bdrop-list button.on{ box-shadow:inset 0 0 0 1.5px var(--accent); }
+
+  /* square switches (Settings), square avatars, square toast */
+  :root[data-pixel="on"] .sw, :root[data-pixel="on"] .sw i, :root[data-pixel="on"] #toast{ border-radius:0; }
+
+  /* inverse-video selection — the little things that sell the console feel */
+  :root[data-pixel="on"] ::selection{ background:var(--accent); color:var(--bg); }
+
+  /* ========================================================================
+     Pixel-art skin v4 — detail polish: Settings zone meters and
+     repo-version chips. Same contract as v2/v3: colour stays the signal,
+     only the form goes blocky.
+     ======================================================================== */
+  /* segmented pixel meters: Settings zone bars */
+  :root[data-pixel="on"] .zrow .zbar{
+    border-radius:0; height:9px; box-shadow:inset 0 0 0 1px var(--pix-edge); }
+  :root[data-pixel="on"] .zrow .zbar i{
+    border-radius:0;
+    -webkit-mask-image:repeating-linear-gradient(90deg,#000 0 5px,transparent 5px 7px);
+            mask-image:repeating-linear-gradient(90deg,#000 0 5px,transparent 5px 7px); }
+  :root[data-pixel="on"] .zrow .zn{ font-family:var(--pixdisp); font-size:8px; }
+  
 </style>
 </head>
 <body>
   <nav id="side">
-    <div id="brand"><b id="co-name">Knowledge base</b><span id="co-meta"></span></div>
+    <div id="brand"><div><b id="co-name">Knowledge base</b><span id="co-meta"></span></div><button id="pixel-toggle" title="Pixel-art mode">▦</button><button id="side-toggle" title="Hide panel">⟨</button></div>
     <input id="search" placeholder="Search… (title, summary, tag, alias, entity)">
     <div id="tree"></div>
   </nav>
+  <button id="side-open" title="Show panel">☰</button>
   <main id="main"><div class="wrap" id="content"><div id="empty">Pick an article from the list ←</div></div></main>
 
 <script>
@@ -79,43 +503,65 @@
   const D = window.KB_DATA || { articles: [], company: {}, briefs: [] };
   D.briefs = D.briefs || [];
   const bySlug = Object.fromEntries(D.articles.map(a => [a.slug, a]));
+  const zoneLabel = z => (D.zoneLabels || {})[z] || z;
+  const initials = s => String(s || '').split(/[-_. ]+/).map(w => w[0] || '').join('').slice(0, 2).toUpperCase();
+  const assigneeTags = arr => (arr || []).map(p =>
+    '<span class="btag av" title="' + escapeHtml(p) + '">👤 ' + escapeHtml(initials(p)) + '</span>').join('');
+  const childrenOf = slug => D.articles.filter(x => x.parent === slug)
+    .sort((a, b) => String(a.order || '99').localeCompare(String(b.order || '99'), undefined, { numeric: true })
+      || String(a.due || '9999').localeCompare(String(b.due || '9999')));
   const byBrief = Object.fromEntries(D.briefs.map(b => [b.path, b]));
-  document.getElementById('co-name').textContent = (D.company && D.company.name) || 'Knowledge base';
+  document.getElementById('co-name').textContent = (D.company && D.company.name) || "Knowledge base";
   document.getElementById('co-meta').textContent =
     D.articles.length + ' articles · ' + (D.generatedAt || '').slice(0, 10);
+
+  // Collapsible sidebar (state persists).
+  function setSide(collapsed) {
+    document.body.classList.toggle('side-collapsed', collapsed);
+    try { localStorage.setItem('kbside', collapsed ? '1' : '0'); } catch { /* private mode — just don't remember */ }
+  }
+  document.getElementById('side-toggle').onclick = () => setSide(true);
+  document.getElementById('side-open').onclick = () => setSide(false);
+  try { if (localStorage.getItem('kbside') === '1') setSide(true); } catch { /* ignore */ }
+
+  // Tiny toast (read-only hints).
+  const toastEl = document.createElement('div'); toastEl.id = 'toast'; document.body.appendChild(toastEl);
+  let toastT = 0;
+  function toast(msg) {
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 2600);
+  }
 
   const tree = document.getElementById('tree');
   function buildTree(filter) {
     tree.innerHTML = '';
     const f = (filter || '').toLowerCase();
-    // Briefs (data room) — pinned at the top
-    const briefs = D.briefs.filter(b => !f || (b.title + ' ' + b.folder).toLowerCase().includes(f));
-    if (briefs.length) {
-      const h = document.createElement('div'); h.className = 'cat'; h.textContent = '📋 Briefs'; tree.appendChild(h);
-      for (const b of briefs.sort((x, y) => x.folder.localeCompare(y.folder))) {
-        const el = document.createElement('div');
-        el.className = 'item'; el.dataset.brief = b.path;
-        el.innerHTML = '<div>' + escapeHtml(b.folder) + '</div><small>' + escapeHtml(b.title) + '</small>';
-        el.onclick = () => { location.hash = 'brief:' + encodeURIComponent(b.path); };
-        tree.appendChild(el);
-      }
+    // Map — pinned near the top (whiteboard view of the whole base)
+    if (!f && D.articles.length) {
+      const nLinks = D.articles.reduce((s, a) => s + (a.links || []).length, 0);
+      const el = document.createElement('div');
+      el.className = 'item'; el.dataset.map = '1';
+      el.innerHTML = '<div><span class="dot" style="background:var(--accent)"></span>Map</div><small>' + D.articles.length + ' nodes · ' + nLinks + ' links</small>';
+      el.onclick = () => { location.hash = 'map'; };
+      tree.appendChild(el);
     }
-    // Task board — pinned when the base has tasks
+    // Task board — pinned right under the map
     const nTasks = D.articles.filter(a => a.path.split('/')[0] === 'tasks').length;
     if (nTasks && !f) {
       const open = D.articles.filter(a => a.path.split('/')[0] === 'tasks' && a.status !== 'done').length;
       const el = document.createElement('div');
       el.className = 'item'; el.dataset.board = '1';
-      el.innerHTML = '<div>📌 Task board</div><small>' + open + ' open · ' + (nTasks - open) + ' done</small>';
+      el.innerHTML = '<div><span class="dot" style="background:var(--warn)"></span>Task board</div><small>' + open + ' open · ' + (nTasks - open) + ' done</small>';
       el.onclick = () => { location.hash = 'board'; };
       tree.appendChild(el);
     }
-    // Settings — pinned (what's enabled, engine version)
-    if (!f) {
+    // Projects — pinned view (list → per-project detail: task history, version)
+    if (!f && D.articles.some(a => a.path.split('/')[0] === 'projects')) {
+      const nP = D.articles.filter(a => a.path.split('/')[0] === 'projects').length;
       const el = document.createElement('div');
-      el.className = 'item'; el.dataset.settings = '1';
-      el.innerHTML = '<div>⚙️ Settings</div><small>features · engine v' + escapeHtml(D.version || '?') + '</small>';
-      el.onclick = () => { location.hash = 'settings'; };
+      el.className = 'item'; el.dataset.projects = '1';
+      el.innerHTML = '<div><span class="dot" style="background:' + zoneColor('projects') + '"></span>Projects</div><small>' + nP + ' projects · versions &amp; history</small>';
+      el.onclick = () => { location.hash = 'projects'; };
       tree.appendChild(el);
     }
     // Recently updated — only in the unfiltered view
@@ -123,7 +569,7 @@
       const recent = D.articles.filter(a => a.updated)
         .sort((x, y) => (y.updated || '').localeCompare(x.updated || '')).slice(0, 5);
       if (recent.length) {
-        const h = document.createElement('div'); h.className = 'cat'; h.textContent = '🕒 Recently updated'; tree.appendChild(h);
+        const h = document.createElement('div'); h.className = 'cat'; h.textContent = 'Recently updated'; tree.appendChild(h);
         for (const a of recent) {
           const el = document.createElement('div');
           el.className = 'item'; el.dataset.slug = a.slug;
@@ -140,7 +586,9 @@
       (groups[a.path.split('/')[0]] ??= []).push(a);
     }
     for (const cat of Object.keys(groups).sort()) {
-      const h = document.createElement('div'); h.className = 'cat'; h.textContent = cat; tree.appendChild(h);
+      const h = document.createElement('div'); h.className = 'cat';
+      h.innerHTML = '<span class="dot" style="background:' + zoneColor(cat) + '"></span>' + escapeHtml(zoneLabel(cat));
+      tree.appendChild(h);
       for (const a of groups[cat].sort((x, y) => x.title.localeCompare(y.title))) {
         const el = document.createElement('div');
         el.className = 'item'; el.dataset.slug = a.slug;
@@ -164,13 +612,50 @@
     if (a.source) meta += '<span class="chip">source: ' + escapeHtml(a.source) + '</span>';
     for (const t of (a.tags || [])) meta += '<span class="chip">' + escapeHtml(t) + '</span>';
     if (a.resource) { const r = escapeHtml(a.resource); meta += '<span class="chip"><a href="' + r + '">resource ↗</a></span>'; }
+    meta += '<span class="chip"><a href="' + escapeHtml(a.path) + '" target="_blank" title="Open the source .md">📄 source</a></span>';
     meta += '</div>';
     let back = '';
+    if (a.type === 'Project') {
+      const inProj = D.articles.filter(x => x.project === a.slug && x.slug !== a.slug);
+      if (inProj.length) {
+        const groups = {};
+        for (const x of inProj) (groups[x.path.split('/')[0]] ??= []).push(x);
+        back += '<div class="backlinks"><h4>In this project (' + inProj.length + ')</h4>';
+        for (const z of Object.keys(groups).sort()) {
+          back += '<div style="margin:4px 0"><span class="chip auth">' + escapeHtml(z) + '</span> '
+            + groups[z].map(x => '<a href="#' + escapeHtml(x.slug) + '">' + escapeHtml(x.title) + '</a>').join(' · ') + '</div>';
+        }
+        back += '</div>';
+      }
+    }
     if (a.backlinks && a.backlinks.length) {
       back = '<div class="backlinks"><h4>Linked from here</h4>' +
         a.backlinks.map(s => '<a href="#' + escapeHtml(s) + '">' + escapeHtml((bySlug[s] || {}).title || s) + '</a>').join('') + '</div>';
     }
-    c.innerHTML = '<article><h1>' + escapeHtml(a.title) + '</h1>' + meta + a.html + back + '</article>';
+    // Plan — if this task is an epic (has subtasks), show the ordered steps with the assignee on each.
+    let plan = '';
+    const kids = childrenOf(a.slug);
+    if (kids.length) {
+      const doneN = kids.filter(k => k.status === 'done').length;
+      const pct = Math.round(doneN / kids.length * 100);
+      plan = '<div class="plan"><h3>📋 Plan — subtasks'
+        + '<span class="bprog"><span class="bar"><i style="width:' + pct + '%"></i></span><span>' + doneN + '/' + kids.length + '</span></span></h3>';
+      for (const k of kids) {
+        plan += '<div class="step st-' + escapeHtml(k.status) + '" onclick="location.hash=\'' + escapeHtml(k.slug) + '\'">'
+          + '<span class="num">' + (k.order ? escapeHtml(String(k.order)) : '•') + '</span>'
+          + '<span class="sttl">' + escapeHtml(k.title) + '</span>'
+          + (k.skill ? '<span class="btag">🛠 ' + escapeHtml(k.skill) + '</span>' : '')
+          + '<span class="btag st st-' + escapeHtml(k.status) + '">' + escapeHtml(k.status) + '</span>'
+          + assigneeTags(k.assignees) + '</div>';
+      }
+      plan += '</div>';
+    }
+    // If this task is itself a subtask, link up to its epic.
+    let parentLink = '';
+    if (a.parent && bySlug[a.parent]) {
+      parentLink = '<div class="parent-link">↑ part of: <a href="#' + escapeHtml(a.parent) + '">' + escapeHtml(bySlug[a.parent].title) + '</a></div>';
+    }
+    c.innerHTML = '<article><h1>' + escapeHtml(a.title) + '</h1>' + meta + parentLink + a.html + plan + back + '</article>';
     document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', e.dataset.slug === slug));
     document.getElementById('main').scrollTop = 0;
   }
@@ -184,71 +669,1296 @@
     document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', e.dataset.brief === path));
     document.getElementById('main').scrollTop = 0;
   }
-  function showBoard() {
+  function showBoard(keepScroll) {
+    document.getElementById('main').classList.add('board-mode');
     const c = document.getElementById('content');
     const tasks = D.articles.filter(a => a.path.split('/')[0] === 'tasks');
+    const topTasks = tasks.filter(t => !t.parent);   // epics + standalone; subtasks are nested inside their epic
     const today = new Date().toISOString().slice(0, 10);
-    const states = [['todo', '📥 todo'], ['doing', '🔨 doing'], ['blocked', '🚧 blocked'], ['done', '✅ done']];
-    let html = '<article><h1>📌 Task board</h1><div class="board">';
+    const states = [['todo', 'To do'], ['doing', 'Doing'], ['blocked', 'Blocked'], ['done', 'Done']];
+    const open = tasks.filter(t => t.status !== 'done').length;
+    const overdue = tasks.filter(t => t.due && t.due < today && t.status !== 'done').length;
+    // Toolbar state — assignee filter + sort order; persisted, but validated against current data
+    // (a stale saved assignee must not leave the board silently empty).
+    let bst = { who: '', sort: 'due' };
+    try { bst = Object.assign(bst, JSON.parse(localStorage.getItem('kb-board') || '{}')); } catch { /* private mode */ }
+    const whoAll = [...new Set(tasks.flatMap(t => t.assignees || []))]
+      .sort((a, b) => a.localeCompare(b));
+    if (bst.who && !whoAll.includes(bst.who)) bst.who = '';
+    if (bst.sort !== 'priority') bst.sort = 'due';
+    const pri = t => t.priority === 'P0' ? 0 : t.priority === 'P1' ? 1 : t.priority === 'P2' ? 2 : t.priority === 'P3' ? 3 : 9;
+    const attr = s => escapeHtml(s).replace(/"/g, '&quot;');
+    // An epic counts as someone's when any of its steps is theirs — the card stays visible with its whole plan.
+    const matchesWho = (t, who) => !who || (t.assignees || []).includes(who)
+      || childrenOf(t.slug).some(k => (k.assignees || []).includes(who));
+    const matches = t => matchesWho(t, bst.who);
+    const openFor = who => topTasks.filter(t => t.status !== 'done' && matchesWho(t, who)).length;
+    const nameOf = w => '👤 ' + w;
+    // ⏳ Waiting on you — subtasks whose predecessors are all done (your turn now).
+    const waiting = tasks.filter(t => {
+      if (!t.parent || t.status === 'done' || t.status === 'blocked') return false;
+      return childrenOf(t.parent).every(s => Number(s.order || 99) >= Number(t.order || 99) || s.status === 'done');
+    });
+    let waitHtml = '';
+    if (waiting.length) {
+      waitHtml = '<div class="waitlane"><div class="wl-head">⏳ Waiting on you<span class="bcount">' + waiting.length + '</span></div><div class="wl-items">';
+      for (const t of waiting) {
+        const ep = bySlug[t.parent];
+        waitHtml += '<div class="wl-item" onclick="location.hash=\'' + escapeHtml(t.slug) + '\'"><span class="sttl">' + escapeHtml(t.title) + '</span>'
+          + (ep ? '<span class="btag">🔀 ' + escapeHtml((ep.title || '').split(' — ')[0]) + '</span>' : '') + '</div>';
+      }
+      waitHtml += '</div></div>';
+    }
+    let html = '<article><h1><span class="dot" style="background:var(--warn);width:12px;height:12px"></span>Task board</h1><div class="meta"><span class="chip">' + open + ' open</span>'
+      + '<span class="chip">' + (tasks.length - open) + ' done</span>'
+      + (overdue ? '<span class="chip" style="color:var(--danger)">' + overdue + ' overdue</span>' : '')
+      + '</div>' + waitHtml
+      + '<div class="bbar"><span class="blab">Assignee</span>'
+      + '<div class="bdrop">'
+      + '<button class="mbtn fbtn bdrop-btn' + (bst.who ? ' on' : '') + '">' + (bst.who ? escapeHtml(nameOf(bst.who)) : 'All') + ' ▾</button>'
+      + '<div class="bdrop-panel" hidden><input class="bdrop-search" type="text" placeholder="Search…">'
+      + '<div class="bdrop-list">'
+      + '<button data-who="" data-name="all"' + (!bst.who ? ' class="on"' : '') + '>All<span class="bcnt">' + openFor('') + '</span></button>'
+      + whoAll.map(w => '<button data-who="' + attr(w) + '" data-name="' + attr(w.toLowerCase()) + '"'
+          + (bst.who === w ? ' class="on"' : '') + '>' + escapeHtml(nameOf(w)) + '<span class="bcnt">' + openFor(w) + '</span></button>').join('')
+      + '</div></div></div>'
+      + '<span class="bsep"></span><span class="blab">Sort</span>'
+      + '<button class="mbtn fbtn' + (bst.sort === 'due' ? ' on' : '') + '" data-sort="due">🗓 Due</button>'
+      + '<button class="mbtn fbtn' + (bst.sort === 'priority' ? ' on' : '') + '" data-sort="priority">⚡ Priority</button></div>'
+      + '<div class="board">';
     for (const [st, label] of states) {
-      let col = tasks.filter(t => t.status === st);
-      if (st === 'done') col = col.sort((x, y) => (y.updated || '').localeCompare(x.updated || '')).slice(0, 15);
-      else col = col.sort((x, y) => (x.due || '9999').localeCompare(y.due || '9999'));
-      html += '<div class="bcol"><h3>' + label + ' (' + col.length + ')</h3>';
+      let col = topTasks.filter(t => t.status === st && matches(t));
+      if (st === 'done') {
+        col = col.sort((x, y) => (y.updated || '').localeCompare(x.updated || '')).slice(0, 15);
+        if (bst.sort === 'priority') col.sort((x, y) => pri(x) - pri(y) || (y.updated || '').localeCompare(x.updated || ''));
+      } else col = col.sort((x, y) => bst.sort === 'priority'
+        ? (pri(x) - pri(y) || (x.due || '9999').localeCompare(y.due || '9999'))
+        : ((x.due || '9999').localeCompare(y.due || '9999') || pri(x) - pri(y)));
+      html += '<div class="bcol s-' + st + '"><div class="bhead"><span class="bdot"></span>' + label
+        + '<span class="bcount">' + col.length + '</span></div>';
       for (const t of col) {
         const od = t.due && t.due < today && st !== 'done';
-        html += '<div class="bcard' + (od ? ' overdue' : '') + '" onclick="location.hash=\'' + escapeHtml(t.slug) + '\'">'
-          + '<div>' + escapeHtml(t.title) + '</div><small>'
-          + ((t.assignees || []).length ? '👤 ' + escapeHtml(t.assignees.join(', ')) + ' ' : '')
-          + (t.project ? '📁 ' + escapeHtml(t.project) + ' ' : '')
-          + (t.due ? '📅 ' + escapeHtml(t.due) + (od ? ' ⏰' : '') : '')
-          + (t.priority ? ' ⚡' + escapeHtml(t.priority) : '')
-          + (t.recur ? ' 🔁' + escapeHtml(t.recur) : '') + '</small></div>';
+        let tags = assigneeTags(t.assignees);
+        if (t.project) tags += '<span class="btag">📁 ' + escapeHtml(t.project) + '</span>';
+        if (t.due) tags += '<span class="btag' + (od ? ' due-over' : '') + '">🗓 ' + escapeHtml(t.due) + '</span>';
+        if (t.priority) tags += '<span class="btag p-' + escapeHtml(t.priority) + '">⚡ ' + escapeHtml(t.priority) + '</span>';
+        const prio = t.priority ? ' prio-' + t.priority : '';
+        if (t.recur) tags += '<span class="btag">🔁 ' + escapeHtml(t.recur) + '</span>';
+        const kids = childrenOf(t.slug);   // subtasks (drzewo zadań)
+        if (kids.length) {
+          const doneN = kids.filter(k => k.status === 'done').length;
+          const pct = Math.round(doneN / kids.length * 100);
+          tags += '<span class="btag">📋 ' + kids.length + ' steps</span>';
+          let subs = '';
+          for (const k of kids) {
+            subs += '<div class="bsub st-' + escapeHtml(k.status) + '" title="' + escapeHtml(k.title) + '" onclick="event.stopPropagation();location.hash=\'' + escapeHtml(k.slug) + '\'">'
+              + '<span class="num">' + (k.order ? escapeHtml(String(k.order)) : '') + '</span>'
+              + '<span class="sdot"></span>'
+              + '<span class="sttl">' + escapeHtml(k.title) + '</span>'
+              + assigneeTags(k.assignees) + '</div>';
+          }
+          html += '<div class="bcard bepic' + (od ? ' overdue' : '') + prio + '" onclick="location.hash=\'' + escapeHtml(t.slug) + '\'">'
+            + '<div class="btitle">' + escapeHtml(t.title) + '</div>'
+            + (tags ? '<div class="btags">' + tags + '</div>' : '')
+            + '<div class="bprog"><span class="bar"><i style="width:' + pct + '%"></i></span><span>' + doneN + '/' + kids.length + '</span></div>'
+            + '<div class="bsubs">' + subs + '</div></div>';
+        } else {
+          html += '<div class="bcard' + (od ? ' overdue' : '') + prio + '" onclick="location.hash=\'' + escapeHtml(t.slug) + '\'">'
+            + '<div class="btitle">' + escapeHtml(t.title) + '</div>'
+            + (tags ? '<div class="btags">' + tags + '</div>' : '') + '</div>';
+        }
       }
       if (!col.length) html += '<small class="bempty">—</small>';
       html += '</div>';
     }
     html += '</div></article>';
     c.innerHTML = html;
+    // Toolbar — sort buttons re-render in place (keeping scroll); the assignee dropdown
+    // sifts its list as you type, Enter picks the first visible row, Escape / outside click closes.
+    const save = () => { try { localStorage.setItem('kb-board', JSON.stringify(bst)); } catch { /* fine — just not remembered */ } };
+    c.querySelectorAll('.bbar button[data-sort]').forEach(b => b.onclick = () => { bst.sort = b.dataset.sort; save(); showBoard(true); });
+    const drop = c.querySelector('.bdrop'), panel = drop.querySelector('.bdrop-panel'),
+          search = drop.querySelector('.bdrop-search'), rows = [...panel.querySelectorAll('.bdrop-list button')];
+    const sift = () => { const q = search.value.trim().toLowerCase(); rows.forEach(r => { r.style.display = r.dataset.name.includes(q) ? '' : 'none'; }); };
+    const close = () => { panel.hidden = true; document.removeEventListener('click', outside, true); };
+    const outside = e => { if (!document.body.contains(drop) || !drop.contains(e.target)) close(); };
+    drop.querySelector('.bdrop-btn').onclick = () => {
+      if (panel.hidden) { panel.hidden = false; search.value = ''; sift(); search.focus(); document.addEventListener('click', outside, true); }
+      else close();
+    };
+    search.oninput = sift;
+    search.onkeydown = e => {
+      if (e.key === 'Enter') { const hit = rows.find(r => r.style.display !== 'none'); if (hit) hit.click(); }
+      else if (e.key === 'Escape') close();
+    };
+    rows.forEach(r => r.onclick = () => { bst.who = r.dataset.who; close(); save(); showBoard(true); });
     document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', !!e.dataset.board));
-    document.getElementById('main').scrollTop = 0;
+    if (!keepScroll) document.getElementById('main').scrollTop = 0;
   }
   function showSettings() {
     const c = document.getElementById('content');
     const feats = D.features || {};
-    const label = v => v === undefined ? '➖ not set (available, never pushed)'
-      : v === false ? '❌ off'
-      : v === true ? '✅ on'
-      : '✅ ' + escapeHtml(String(v));
     const zones = {};
     for (const a of D.articles) { const z = a.path.split('/')[0]; zones[z] = (zones[z] || 0) + 1; }
-    let html = '<article><h1>⚙️ Settings</h1>';
-    html += '<div class="meta"><span class="chip">engine v' + escapeHtml(D.version || '?') + '</span>'
+    const nLinks = D.articles.reduce((t, a) => t + (a.links || []).length, 0);
+    const stat = (v, label) => '<div class="stat"><b>' + v + '</b><small>' + label + '</small></div>';
+    const featRow = (key, icon, name, desc) => {
+      const v = feats[key];
+      const on = v !== undefined && v !== false;
+      const unset = v === undefined;
+      const extra = typeof v === 'string' ? ' · mode: ' + escapeHtml(v) : (unset ? ' · not set yet' : '');
+      return '<div class="setrow"><div class="ico">' + icon + '</div>'
+        + '<div class="txt"><b>' + name + '</b><small>' + desc + extra + '</small></div>'
+        + '<div class="sw' + (on ? ' on' : '') + (unset ? ' unset' : '') + '" data-feat="' + key + '"'
+        + ' role="switch" aria-checked="' + on + '" aria-readonly="true" tabindex="0"><i></i></div></div>';
+    };
+    let html = '<article><h1><span class="dot" style="background:var(--muted);width:12px;height:12px"></span>Settings</h1>'
+      + '<div class="meta"><span class="chip">engine v' + escapeHtml(D.version || '?') + '</span>'
       + '<span class="chip">' + escapeHtml((D.company && D.company.language) || '?') + '</span>'
-      + '<span class="chip">' + D.articles.length + ' articles</span></div>';
-    html += '<h2>Features</h2><table><thead><tr><th>Feature</th><th>State</th><th>What it does</th></tr></thead><tbody>'
-      + '<tr><td>journal</td><td>' + label(feats.journal) + '</td><td>Daily check-in, weekly planning (/kb-journal)</td></tr>'
-      + '<tr><td>goals</td><td>' + label(feats.goals) + '</td><td>Monthly goals &amp; review ("professional" = no private section)</td></tr>'
-      + '</tbody></table>';
-    html += '<blockquote>To change these, ask your assistant — e.g. "enable journaling", "turn off private goals" (/kb-settings). This viewer is read-only.</blockquote>';
-    html += '<h2>Zones in use</h2><table><thead><tr><th>Zone</th><th>Articles</th></tr></thead><tbody>'
-      + Object.keys(zones).sort().map(z => '<tr><td>' + escapeHtml(z) + '</td><td>' + zones[z] + '</td></tr>').join('')
-      + '</tbody></table></article>';
+      + (D.generatedAt ? '<span>· reindexed ' + escapeHtml(D.generatedAt.slice(0, 16).replace('T', ' ')) + '</span>' : '')
+      + '</div>';
+    html += '<div class="statgrid">'
+      + stat(D.articles.length, 'articles') + stat(nLinks, 'links') + stat(Object.keys(zones).length, 'zones')
+      + '</div>';
+    html += '<h2>Features</h2><div class="setcard">'
+      + featRow('journal', 'J', 'Journaling', 'Daily check-in & weekly planning (/kb-journal)')
+      + featRow('goals', 'G', 'Goals', 'Monthly goals & month-end review')
+      + '</div>';
+    const maxZ = Math.max(...Object.values(zones), 1);
+    html += '<h2>Zones</h2><div class="setcard">'
+      + Object.keys(zones).sort((x, y) => zones[y] - zones[x]).map(z => {
+          const st = zoneStyle(z);
+          return '<div class="zrow"><i class="zg" style="color:' + st.c + '">' + st.g + '</i>'
+            + '<span class="zname">' + escapeHtml(zoneLabel(z)) + '</span>'
+            + '<span class="zbar"><i style="width:' + Math.round(zones[z] / maxZ * 100) + '%;background:' + st.c + '"></i></span>'
+            + '<span class="zn">' + zones[z] + '</span></div>';
+        }).join('')
+      + '</div>';
+    html += '<blockquote>This viewer is offline &amp; read-only — flip features by asking your assistant, e.g. <em>"enable journaling"</em> (<code>/kb-settings</code>).</blockquote></article>';
     c.innerHTML = html;
+    c.querySelectorAll('.sw').forEach(el => {
+      const flip = () => toast('Read-only here — ask your assistant: "' +
+        (el.classList.contains('on') ? 'turn off ' : 'enable ') + el.dataset.feat + '" (/kb-settings)');
+      el.onclick = flip;
+      el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } };
+    });
     document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', !!e.dataset.settings));
     document.getElementById('main').scrollTop = 0;
   }
+
+  const ZONE_STYLE = {
+    projects:   { c:'#8b7cf6', s:'circle',   g:'●' },
+    concepts:   { c:'#22b085', s:'hex',      g:'⬢' },
+    skills:     { c:'#e0653a', s:'star',     g:'✦' },
+    people:     { c:'#e8a13c', s:'triangle', g:'▲' },
+    meetings:   { c:'#4a90d9', s:'diamond',  g:'◆' },
+    tasks:      { c:'#d4537e', s:'square',   g:'■' },
+    journal:    { c:'#d9b60a', s:'pent',     g:'⬟' },
+    research:   { c:'#b05cd6', s:'ring',     g:'◎' },
+    wiki:       { c:'#889096', s:'circle',   g:'●' },
+  };
+  const SHAPE_CYCLE = ['circle', 'hex', 'star', 'triangle', 'diamond', 'square', 'pent', 'ring'];
+  function zoneStyle(z) {
+    if (ZONE_STYLE[z]) return ZONE_STYLE[z];
+    let h = 0; for (const ch of z) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    return { c: 'hsl(' + (h % 360) + ',55%,55%)', s: SHAPE_CYCLE[h % SHAPE_CYCLE.length],
+             g: { circle:'●', hex:'⬢', star:'✦', triangle:'▲', diamond:'◆', square:'■', pent:'⬟', ring:'◎' }[SHAPE_CYCLE[h % SHAPE_CYCLE.length]] };
+  }
+  function zoneColor(z) { return zoneStyle(z).c; }
+  function drawShape(ctx, shape, x, y, r) {
+    ctx.beginPath();
+    if (shape === 'circle') { ctx.arc(x, y, r, 0, 7); }
+    else if (shape === 'square') {
+      const a = r * 0.88; ctx.rect(x - a, y - a, a * 2, a * 2);
+    } else if (shape === 'ring') {
+      ctx.arc(x, y, r, 0, 7); ctx.arc(x, y, r * 0.45, 0, 7, true);
+    } else if (shape === 'star') {
+      for (let i = 0; i < 8; i++) {
+        const rr = i % 2 === 0 ? r * 1.15 : r * 0.42;
+        const a = i / 8 * Math.PI * 2 - Math.PI / 2;
+        ctx[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+      }
+    } else {
+      const sides = { triangle: 3, diamond: 4, pent: 5, hex: 6 }[shape] || 6;
+      const rot = shape === 'diamond' ? 0 : -Math.PI / 2;
+      for (let i = 0; i < sides; i++) {
+        const a = i / sides * Math.PI * 2 + rot;
+        ctx[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * r * 1.08, y + Math.sin(a) * r * 1.08);
+      }
+    }
+    ctx.closePath(); ctx.fill();
+  }
+  let mapStop = null;
+  function showMap() {
+    if (mapStop) { mapStop(); mapStop = null; }
+    const main = document.getElementById('main');
+    main.classList.add('map-mode');
+    const c = document.getElementById('content');
+    c.innerHTML = '<div id="map-wrap"><canvas id="map-canvas"></canvas>'
+      + '<div class="map-bar"><input type="text" id="map-q" placeholder="Filter nodes…">'
+      + '<button class="mbtn" id="mb-cosmos">Cosmos</button>'
+      + '<button class="mbtn" id="mb-galaxy">Galaxy</button>'
+      + '<button class="mbtn" id="mb-orbit">Orbit</button>'
+      + '<button class="mbtn" id="mb-labels" title="Label density — click to cycle: hubs → all → none">Labels: hubs</button>'
+      + '<button class="mbtn" id="mb-color" title="Colour nodes by zone or by cluster">Colour: zone</button>'
+      + '<button class="mbtn" id="mb-zin" title="Zoom in">+</button>'
+      + '<button class="mbtn" id="mb-zout" title="Zoom out">−</button>'
+      + '<button class="mbtn" id="mb-fit" title="Fit the whole map">Fit</button>'
+      + '<button class="mbtn" id="mb-reset" title="Forget my arrangement, relayout">Relayout</button>'
+      + '<span id="map-stats"></span></div>'
+      + '<div id="map-legend"></div><div id="map-tip"></div></div>';
+    document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', !!e.dataset.map));
+
+    const canvas = document.getElementById('map-canvas'), ctx = canvas.getContext('2d');
+    const tip = document.getElementById('map-tip');
+    const centerName = (D.company && D.company.name) || 'base';
+    const storeKey = 'kbmap:' + centerName;
+    const hidden = new Set();       // hidden zones
+    const hiddenComm = new Set();   // hidden communities (Colour: cluster legend)
+    let query = '', alpha = 1, needFrame = true, raf = 0, orbitMoving = false;
+    let vw = 0, vh = 0, sized = false, dpr = Math.max(1, window.devicePixelRatio || 1);
+    const view = { x: 0, y: 0, k: 1 };
+    const camT = { x: 0, y: 0, k: 1 };           // camera target — view eases toward it (pretty zoom)
+    let hover = null, hoverHub = null, panDrag = null, dragNode = null, moved = 0;
+
+    // Build graph: group by zone, weight by degree.
+    const zones = {};
+    const nodes = D.articles.map(a => {
+      const zone = a.path.split('/')[0];
+      (zones[zone] ??= []).push(a.slug);
+      const deg = (a.links || []).length + (a.backlinks || []).length;
+      return { slug: a.slug, title: a.title, zone, deg,
+        r: 3.5 + Math.sqrt(deg) * 2.2, a, pinned: false,
+        x: 0, y: 0, vx: 0, vy: 0, ox: 0, oy: 0 };
+    });
+    const byId = Object.fromEntries(nodes.map(n => [n.slug, n]));
+    const edges = [];
+    const seen = new Set();
+    const zonePair = {};                     // aggregated zone↔zone link counts (low-zoom view)
+    for (const a of D.articles) for (const t of (a.links || [])) {
+      if (!byId[t] || t === a.slug) continue;
+      const key = a.slug < t ? a.slug + '|' + t : t + '|' + a.slug;
+      if (seen.has(key)) continue; seen.add(key);
+      edges.push([byId[a.slug], byId[t]]);
+      const z1 = byId[a.slug].zone, z2 = byId[t].zone;
+      if (z1 !== z2) { const zk = z1 < z2 ? z1 + '|' + z2 : z2 + '|' + z1; zonePair[zk] = (zonePair[zk] || 0) + 1; }
+    }
+    // Project affiliation edges: everything tagged project:<slug> ties to its project node.
+    for (const a of D.articles) {
+      if (!a.project || !byId[a.project] || a.project === a.slug) continue;
+      const key = a.slug < a.project ? a.slug + '|' + a.project : a.project + '|' + a.slug;
+      if (seen.has(key)) continue; seen.add(key);
+      edges.push([byId[a.slug], byId[a.project]]);
+      const z1 = byId[a.slug].zone, z2 = byId[a.project].zone;
+      if (z1 !== z2) { const zk = z1 < z2 ? z1 + '|' + z2 : z2 + '|' + z1; zonePair[zk] = (zonePair[zk] || 0) + 1; }
+    }
+    // Label density + colour mode (persisted). hubCut = degree at/above which a node counts
+    // as a hub and gets a label in "hubs" mode.
+    let labelMode = 'hubs', colorBy = 'zone', colorTouched = false;
+    const hubCut = 4;
+    const zoneNames = Object.keys(zones).sort((x, y) => zones[y].length - zones[x].length);
+    // Anchor ring scales with base size, so big bases spread instead of blending into one blob.
+    const anchorR = 190 + Math.min(650, Math.sqrt(nodes.length) * 16);
+    const anchors = {};
+    zoneNames.forEach((z, i) => {
+      const ang = (i / zoneNames.length) * Math.PI * 2 - Math.PI / 2;
+      anchors[z] = { x: Math.cos(ang) * anchorR, y: Math.sin(ang) * anchorR,
+                     hubR: 16 + Math.sqrt(zones[z].length) * 4 };
+    });
+    // Orbit targets: files on concentric rings around their zone hub (most-connected innermost).
+    for (const z of zoneNames) {
+      const A = anchors[z];
+      const ids = zones[z].slice().sort((p, q) => byId[q].deg - byId[p].deg);
+      let idx = 0, ring = 0;
+      while (idx < ids.length) {
+        const cap = 8 + ring * 7, R = A.hubR + 34 + ring * 30;
+        for (let j = 0; j < cap && idx < ids.length; j++, idx++) {
+          const ang = (j / Math.min(cap, ids.length - ring * 8)) * Math.PI * 2 + ring * 0.5;
+          const n = byId[ids[idx]];
+          n.ox = A.x + Math.cos(ang) * R; n.oy = A.y + Math.sin(ang) * R;
+        }
+        ring++;
+      }
+    }
+    // ── Cosmos layout (the layered second-brain view): center → SKILLS sparkle ring →
+    // MEMORY disc (dotted swarms per zone) → TASKS ring (planets with moons) → PROJECTS hex ring.
+    const cosmos = { rings: [], labels: [], memR0: 0, memR1: 0, R: 0 };
+    (function cosmosLayout() {
+      const has = z => zones[z] && zones[z].length;
+      const memZones = zoneNames.filter(z => !['skills', 'tasks', 'projects'].includes(z));
+      let R = 90;
+      if (has('skills')) {
+        R = 132;
+        const ids = zones.skills;
+        ids.forEach((sl, i) => {
+          const ring = i % 2, rr = R + ring * 26;
+          const ang = (i / ids.length) * Math.PI * 2 - Math.PI / 2 + ring * 0.35;
+          const n = byId[sl]; n.cx = Math.cos(ang) * rr; n.cy = Math.sin(ang) * rr;
+        });
+        cosmos.rings.push({ z: 'skills', r: R + 13, style: 'sparkle' });
+        R += 64;
+      }
+      cosmos.memR0 = R + 36;
+      cosmos.memR1 = cosmos.memR0;
+      if (memZones.length) {
+        const totalW = memZones.reduce((t, z) => t + Math.sqrt(zones[z].length), 0) || 1;
+        let a0 = -Math.PI / 2;
+        for (const z of memZones) {
+          const a1 = a0 + (Math.sqrt(zones[z].length) / totalW) * Math.PI * 2;
+          const ids = zones[z].slice().sort((x, y) => byId[y].deg - byId[x].deg);
+          let idx = 0, row = 0;
+          while (idx < ids.length) {
+            const rr = cosmos.memR0 + 34 + row * 24;
+            const pad = Math.min(0.35, 15 / rr);
+            const span = Math.max(0.08, (a1 - a0) - pad * 2);
+            const cap = Math.max(1, Math.floor(span * rr / 17));
+            for (let j = 0; j < cap && idx < ids.length; j++, idx++) {
+              const ang = a0 + pad + (j + 0.5) * span / cap;
+              const n = byId[ids[idx]]; n.cx = Math.cos(ang) * rr; n.cy = Math.sin(ang) * rr;
+            }
+            cosmos.memR1 = Math.max(cosmos.memR1, rr);
+            row++;
+          }
+          const mid = (a0 + a1) / 2;
+          cosmos.labels.push({ text: zoneLabel(z).toUpperCase(), x: Math.cos(mid) * (cosmos.memR0 + 8),
+                               y: Math.sin(mid) * (cosmos.memR0 + 8), c: zoneColor(z) });
+          a0 = a1;
+        }
+      }
+      cosmos.memR1 = Math.max(cosmos.memR1 + 44, cosmos.memR0 + 110);
+      let taskR = cosmos.memR1 + 64;
+      if (has('tasks')) {
+        const ids = zones.tasks;
+        ids.forEach((sl, i) => {
+          const ang = (i / ids.length) * Math.PI * 2 - Math.PI / 2 + 0.22;
+          const n = byId[sl]; n.cx = Math.cos(ang) * taskR; n.cy = Math.sin(ang) * taskR;
+        });
+        cosmos.rings.push({ z: 'tasks', r: taskR, style: 'orbits' });
+      }
+      const projR = taskR + (has('tasks') ? 104 : 30);
+      if (has('projects')) {
+        const ids = zones.projects;
+        ids.forEach((sl, i) => {
+          const ang = (i / ids.length) * Math.PI * 2 - Math.PI / 2 + 0.35;
+          const n = byId[sl]; n.cx = Math.cos(ang) * projR; n.cy = Math.sin(ang) * projR;
+        });
+        cosmos.rings.push({ z: 'projects', r: projR, style: 'hex' });
+      }
+      let outerR = has('projects') ? projR : taskR;
+      cosmos.R = outerR + 70;
+      for (const n of nodes) if (n.cx === 0 && n.cy === 0 && n.slug !== undefined && !memZones.includes(n.zone)
+        && !['skills', 'tasks', 'projects'].includes(n.zone)) { n.cx = n.ox; n.cy = n.oy; }
+    })();
+    const cosmosR = cosmos.R;
+    // ── Galaxy layout: deterministic community clusters (replaces the old force-sim that
+    // collapsed every node into one unreadable blob). Nodes grouped by graph.json community,
+    // clusters laid on a circle, packed in rings (hub innermost), coloured per community.
+    const galaxyClusters = [];
+    let galaxyR = 400;
+    (function galaxyLayout() {
+      const byComm = new Map();
+      for (const n of nodes) {
+        const c = (n.a.community != null && n.a.community >= 0) ? n.a.community : -1;
+        if (!byComm.has(c)) byComm.set(c, []);
+        byComm.get(c).push(n.slug);
+      }
+      const commLabels = Object.fromEntries((D.communities || []).map(c => [c.id, c.label]));
+      const commIds = [...byComm.keys()].filter(c => c >= 0).sort((a, b) => byComm.get(b).length - byComm.get(a).length || a - b);
+      const ringR = 300 + Math.sqrt(nodes.length) * 34;   // spread clusters so centres don't crowd
+      const N = Math.max(1, commIds.length);
+      const packRings = (ids, cx, cy) => {
+        let idx = 0, ring = 0, maxR = 8;
+        if (ids.length) { const h = byId[ids[0]]; h.gx = cx; h.gy = cy; idx = 1; ring = 1; }
+        while (idx < ids.length) {
+          const cap = 6 + ring * 6, R = 26 + (ring - 1) * 26;
+          const count = Math.min(cap, ids.length - idx);
+          for (let j = 0; j < count; j++, idx++) {
+            const ang = (j / count) * Math.PI * 2 + ring * 0.4;
+            const n = byId[ids[idx]]; n.gx = cx + Math.cos(ang) * R; n.gy = cy + Math.sin(ang) * R;
+          }
+          maxR = R; ring++;
+        }
+        return maxR;
+      };
+      commIds.forEach((cid, i) => {
+        const ang = (i / N) * Math.PI * 2 - Math.PI / 2;
+        const cx = Math.cos(ang) * ringR, cy = Math.sin(ang) * ringR;
+        const ids = byComm.get(cid).slice().sort((p, q) => byId[q].deg - byId[p].deg);
+        const rad = packRings(ids, cx, cy);
+        galaxyClusters.push({ cid, label: commLabels[cid] || ('Cluster ' + cid), x: cx, y: cy, n: ids.length, rad });
+      });
+      // Unclustered nodes → a gentle outer belt so they stay visible, not piled on the centre.
+      const loose = byComm.get(-1) || [];
+      loose.forEach((sl, i) => {
+        const ang = (i / Math.max(1, loose.length)) * Math.PI * 2;
+        const rr = ringR + 150 + (i % 3) * 28;
+        const n = byId[sl]; n.gx = Math.cos(ang) * rr; n.gy = Math.sin(ang) * rr;
+      });
+      galaxyR = ringR + (loose.length ? 210 : 120);
+    })();
+    // Positions: your saved arrangement first (whiteboard memory), else jitter around the anchor.
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(storeKey) || '{}'); } catch { saved = {}; }
+    if (!saved || typeof saved !== 'object') saved = {};   // stale/foreign schema → clean start
+    const finPair = p => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]);
+    let mode = ['orbit', 'galaxy', 'cosmos'].includes(saved.mode) ? saved.mode : 'cosmos';
+    if (['hubs', 'all', 'none'].includes(saved.labelMode)) labelMode = saved.labelMode;
+    if (['zone', 'cluster'].includes(saved.colorBy)) { colorBy = saved.colorBy; colorTouched = true; }
+    else if (mode === 'galaxy') colorBy = 'cluster';   // clusters read best coloured by cluster
+    for (const n of nodes) {
+      const p = (saved.pos || {})[n.slug];
+      if (finPair(p)) { n.pinX = p[0]; n.pinY = p[1]; n.pinned = true; }   // your Galaxy arrangement
+      if (mode === 'orbit') { n.x = n.ox; n.y = n.oy; continue; }
+      if (mode === 'cosmos') { n.x = n.cx; n.y = n.cy; continue; }
+      if (mode === 'galaxy') { n.x = n.pinned ? n.pinX : n.gx; n.y = n.pinned ? n.pinY : n.gy; continue; }
+      if (n.pinned) { n.x = n.pinX; n.y = n.pinY; continue; }
+      const A = anchors[n.zone];
+      const spread = 60 + Math.sqrt(zones[n.zone].length) * 16;
+      n.x = A.x + (Math.random() - 0.5) * spread; n.y = A.y + (Math.random() - 0.5) * spread;
+    }
+    if (mode !== 'galaxy') alpha = 0;
+    let persistT = 0;
+    function persist() {
+      clearTimeout(persistT);
+      persistT = setTimeout(() => {
+        const pos = {};
+        for (const n of nodes) if (n.pinned) pos[n.slug] = [Math.round(n.pinX), Math.round(n.pinY)];
+        try { localStorage.setItem(storeKey, JSON.stringify({ pos, view, mode, labelMode, colorBy })); } catch { /* storage full/blocked — the map just won't remember */ }
+      }, 300);
+    }
+
+    // Filter bar — dropdown facets instead of a chip wall. First dropdown follows the Colour
+    // toggle (zones or clusters; items show/hide layers). Entity dropdowns (Projects)
+    // pick ONE item each: the map glides to it and lights up its connections,
+    // everything else dims. Reset clears every selection and visibility filter.
+    const leg = document.getElementById('map-legend');
+    const FACETS = [['projects', 'Projects']]
+      .filter(([z]) => (zones[z] || []).length);
+    const focusSel = {};                                  // facet zone → selected slug (one each)
+    let focusRoots = new Set(), focusSet = null;          // roots + their neighbourhood (null = off)
+    function recomputeFocus() {
+      focusRoots = new Set(Object.values(focusSel).filter(Boolean));
+      if (!focusRoots.size) { focusSet = null; return; }
+      focusSet = new Set(focusRoots);
+      for (const [p, q] of edges) {
+        if (focusRoots.has(p.slug)) focusSet.add(q.slug);
+        if (focusRoots.has(q.slug)) focusSet.add(p.slug);
+      }
+    }
+    function focusCam(slug) {                             // glide the camera to the picked node
+      const n = byId[slug]; if (!n) return;
+      const tx = mode === 'cosmos' ? n.cx : mode === 'galaxy' ? (n.pinned ? n.pinX : n.gx) : n.ox;
+      const ty = mode === 'cosmos' ? n.cy : mode === 'galaxy' ? (n.pinned ? n.pinY : n.gy) : n.oy;
+      camT.k = Math.max(camT.k, 0.9);
+      camT.x = -tx * camT.k; camT.y = -ty * camT.k;
+      needFrame = true;
+    }
+    function closePanels(except) {
+      leg.querySelectorAll('.mdd.open').forEach(el => { if (el !== except) el.classList.remove('open'); });
+    }
+    const onDocClick = () => closePanels();
+    document.addEventListener('click', onDocClick);
+    function syncBar() {                                  // refresh counts without closing the open panel
+      const dd = leg.querySelector('.mdd[data-dd="zone"], .mdd[data-dd="comm"]');
+      if (dd) {
+        const isComm = dd.dataset.dd === 'comm';
+        const off = isComm ? hiddenComm.size : hidden.size;
+        const btn = dd.querySelector('.mdd-btn');
+        btn.classList.toggle('on', !!off);
+        btn.innerHTML = '<span class="bx">' + (isComm ? 'Clusters' : 'Zones')
+          + (off ? ' · ' + off + ' off' : '') + '</span><span class="car">▾</span>';
+      }
+      const rst = document.getElementById('mf-reset');
+      if (rst) rst.style.opacity = (focusRoots.size || hidden.size || hiddenComm.size) ? '' : '.45';
+    }
+    function buildLegend() {
+      let html = '';
+      if (colorBy === 'cluster') {
+        const off = hiddenComm.size;
+        html += '<div class="mdd" data-dd="comm"><button class="mdd-btn' + (off ? ' on' : '') + '">'
+          + '<span class="bx">Clusters' + (off ? ' · ' + off + ' off' : '') + '</span><span class="car">▾</span></button>'
+          + '<div class="mdd-panel">'
+          + (galaxyClusters.map(c => {
+              const members = nodes.filter(n => n.a.community === c.cid).length;
+              return '<div class="mdd-item' + (hiddenComm.has(c.cid) ? ' off' : '') + '" data-c="' + c.cid + '">'
+                + '<i style="background:' + commColor(c.cid) + '"></i><span class="tx">' + escapeHtml(c.label) + '</span>'
+                + '<span class="cnt">' + members + '</span></div>';
+            }).join('') || '<div class="mdd-item" style="opacity:.6;cursor:default">no clusters</div>')
+          + '</div></div>';
+      } else {
+        const off = hidden.size;
+        html += '<div class="mdd" data-dd="zone"><button class="mdd-btn' + (off ? ' on' : '') + '">'
+          + '<span class="bx">Zones' + (off ? ' · ' + off + ' off' : '') + '</span><span class="car">▾</span></button>'
+          + '<div class="mdd-panel">'
+          + zoneNames.map(z => {
+              const st = zoneStyle(z);
+              return '<div class="mdd-item' + (hidden.has(z) ? ' off' : '') + '" data-z="' + escapeHtml(z) + '">'
+                + '<i style="background:none;color:' + st.c + ';width:auto;height:auto;font-style:normal;font-size:12px;line-height:1">' + st.g + '</i>'
+                + '<span class="tx">' + escapeHtml(zoneLabel(z)) + '</span><span class="cnt">' + zones[z].length + '</span></div>';
+            }).join('')
+          + '</div></div>';
+      }
+      for (const [z, label] of FACETS) {
+        const sel = focusSel[z];
+        const ids = zones[z].slice().sort((p, q) => byId[q].deg - byId[p].deg
+          || byId[p].title.localeCompare(byId[q].title));
+        html += '<div class="mdd" data-dd="' + z + '"><button class="mdd-btn' + (sel ? ' on' : '') + '">'
+          + '<span class="bx">' + (sel ? escapeHtml(byId[sel].title) : label) + '</span><span class="car">▾</span></button>'
+          + '<div class="mdd-panel">'
+          + ids.map(sl => {
+              const n = byId[sl];
+              return '<div class="mdd-item' + (sel === sl ? ' sel' : '') + '" data-f="' + z + '" data-s="' + escapeHtml(sl) + '">'
+                + '<i style="background:' + nodeColor(n) + '"></i><span class="tx">' + escapeHtml(n.title) + '</span>'
+                + '<span class="cnt">' + n.deg + '</span></div>';
+            }).join('')
+          + '</div></div>';
+      }
+      html += '<button class="mbtn" id="mf-reset" title="Clear selection and filters">Reset</button>';
+      leg.innerHTML = html;
+      leg.querySelectorAll('.mdd-btn').forEach(b => b.onclick = e => {
+        e.stopPropagation();
+        const dd = b.parentElement;
+        closePanels(dd);
+        dd.classList.toggle('open');
+      });
+      // Visibility toggles — the panel stays open so several layers can be flipped in a row.
+      leg.querySelectorAll('.mdd-item[data-c]').forEach(el => el.onclick = e => {
+        e.stopPropagation();
+        const c = +el.dataset.c;
+        hiddenComm.has(c) ? hiddenComm.delete(c) : hiddenComm.add(c);
+        el.classList.toggle('off', hiddenComm.has(c));
+        needFrame = true; syncBar();
+      });
+      leg.querySelectorAll('.mdd-item[data-z]').forEach(el => el.onclick = e => {
+        e.stopPropagation();
+        const z = el.dataset.z;
+        hidden.has(z) ? hidden.delete(z) : hidden.add(z);
+        el.classList.toggle('off', hidden.has(z));
+        needFrame = true; syncBar();
+      });
+      // Entity focus — one per facet; picking again clears it; the camera glides to the node.
+      leg.querySelectorAll('.mdd-item[data-f]').forEach(el => el.onclick = e => {
+        e.stopPropagation();
+        const f = el.dataset.f, sl = el.dataset.s;
+        focusSel[f] = focusSel[f] === sl ? null : sl;
+        recomputeFocus();
+        if (focusSel[f]) focusCam(sl);
+        closePanels();
+        needFrame = true; buildLegend();
+      });
+      document.getElementById('mf-reset').onclick = () => {
+        for (const k of Object.keys(focusSel)) focusSel[k] = null;
+        hidden.clear(); hiddenComm.clear();
+        recomputeFocus(); closePanels();
+        needFrame = true; buildLegend();
+      };
+      syncBar();
+    }
+    // Theme colours + community palette — MUST be initialised before buildLegend() runs:
+    // the "Colour: cluster" legend branch calls commColor() at build time (a saved
+    // colorBy:'cluster' otherwise crashed showMap with a TDZ ReferenceError).
+    function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+    let inkCol = css('--ink'), mutedCol = css('--muted'), labelBg = css('--bg');
+    const COMM_PALETTE = ['#6c8cff', '#ff8f6c', '#4bbf8a', '#c86cff', '#ffce54', '#4bc0d9', '#ff6c9c', '#8fbf4b', '#b98cff', '#ff6c6c', '#6cddc0', '#d99a4b'];
+    const commColor = c => (c != null && c >= 0) ? COMM_PALETTE[c % COMM_PALETTE.length] : mutedCol;
+    // Node colour follows the current "Colour" toggle: by zone (default) or by cluster.
+    // Defined BEFORE buildLegend() runs — the dropdown items colour their dots with it.
+    const nodeColor = n => colorBy === 'cluster' ? commColor(n.a.community) : zoneStyle(n.zone).c;
+    buildLegend();
+    document.getElementById('map-stats').textContent = nodes.length + ' articles · ' + edges.length + ' links';
+
+    function resize() {
+      const w = canvas.parentElement.clientWidth, h = canvas.parentElement.clientHeight;
+      vw = w; vh = h;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+      needFrame = true;
+      // Fit once the container actually has a size (opening the map before layout used to
+      // leave the graph zoomed to a tiny clump — fitView with a 0-width canvas clamps to 0.1).
+      if (!sized && vw > 40 && vh > 40) { sized = true; fitView(); }
+    }
+    const ro = new ResizeObserver(resize); ro.observe(canvas.parentElement);
+    resize();
+    // Safety nudge: re-run resize on the next two frames so the graph fits even if the container
+    // had no size yet on mount (SPA navigation could otherwise leave the map blank / a tiny clump).
+    requestAnimationFrame(() => { resize(); requestAnimationFrame(resize); });
+    // Restore your last camera, else start fitted to the whole cosmos.
+    if (saved.view && Number.isFinite(saved.view.x) && Number.isFinite(saved.view.y)
+        && Number.isFinite(saved.view.k) && saved.view.k > 0.02 && saved.view.k <= 8)
+      { view.x = saved.view.x; view.y = saved.view.y; view.k = saved.view.k; }
+    else view.k = Math.max(0.1, Math.min(1.4, (Math.min(vw, vh) / 2 - 50) / ((mode === 'cosmos' ? cosmosR : mode === 'galaxy' ? galaxyR : anchorR) + 190)));
+    camT.x = view.x; camT.y = view.y; camT.k = view.k;
+    function camMoving() { return Math.abs(camT.k - view.k) > 0.001 || Math.abs(camT.x - view.x) > 0.4 || Math.abs(camT.y - view.y) > 0.4; }
+    function camStep() {
+      view.x += (camT.x - view.x) * 0.16; view.y += (camT.y - view.y) * 0.16;
+      view.k += (camT.k - view.k) * 0.16;
+    }
+
+    function fitView() {
+      if (vw < 40 || vh < 40) return;   // container not laid out yet — a 0-size fit clamps to k=0.1
+      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, any = false;
+      for (const n of nodes) {
+        if (!visible(n)) continue;
+        any = true;
+        // In Galaxy, frame the target cluster layout (not the mid-ease positions).
+        const px = mode === 'galaxy' ? (n.pinned ? n.pinX : n.gx) : n.x;
+        const py = mode === 'galaxy' ? (n.pinned ? n.pinY : n.gy) : n.y;
+        x0 = Math.min(x0, px); y0 = Math.min(y0, py);
+        x1 = Math.max(x1, px); y1 = Math.max(y1, py);
+      }
+      if (!any) return;
+      if (mode === 'cosmos' && cosmos.R) {
+        x0 = Math.min(x0, -cosmos.R); y0 = Math.min(y0, -cosmos.R);
+        x1 = Math.max(x1, cosmos.R); y1 = Math.max(y1, cosmos.R);
+      }
+      const cw = Math.max(120, x1 - x0), ch = Math.max(120, y1 - y0);
+      camT.k = Math.max(0.1, Math.min(2.2, Math.min((vw - 90) / cw, (vh - 130) / ch)));
+      camT.x = -((x0 + x1) / 2) * camT.k;
+      camT.y = -((y0 + y1) / 2) * camT.k;
+      needFrame = true; persist();
+    }
+
+    const roundRect = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
+    const mq = matchMedia('(prefers-color-scheme: dark)');
+    const onScheme = () => { inkCol = css('--ink'); mutedCol = css('--muted'); labelBg = css('--bg'); needFrame = true; };
+    mq.addEventListener('change', onScheme);
+
+    function matches(n) {
+      if (!query) return true;
+      return (n.title + ' ' + (n.a.summary || '') + ' ' + (n.a.tags || []).join(' ')).toLowerCase().includes(query);
+    }
+    function visible(n) { return !hidden.has(n.zone) && !hiddenComm.has(n.a.community); }
+    // Semantic zoom: 0 = zones only (hubs), 1 = files fully visible. Fades between.
+    function fileT() { return Math.min(1, Math.max(0, (view.k - 0.38) / 0.27)); }
+
+    function physics() {
+      for (const z of zoneNames) {
+        const ids = zones[z];
+        for (let i = 0; i < ids.length; i++) {
+          const p = byId[ids[i]];
+          for (let j = i + 1; j < ids.length; j++) {
+            const q = byId[ids[j]];
+            let dx = q.x - p.x, dy = q.y - p.y;
+            let d2 = dx * dx + dy * dy; if (d2 < 1) d2 = 1;
+            if (d2 > 22500) continue;
+            const f = Math.min(2.4, 620 / d2) * alpha;
+            const d = Math.sqrt(d2); dx /= d; dy /= d;
+            p.vx -= dx * f; p.vy -= dy * f; q.vx += dx * f; q.vy += dy * f;
+          }
+        }
+      }
+      for (const [p, q] of edges) {
+        let dx = q.x - p.x, dy = q.y - p.y;
+        const d = Math.sqrt(dx * dx + dy * dy) || 1;
+        const f = (d - 62) * 0.006 * alpha;
+        dx /= d; dy /= d;
+        p.vx += dx * f * d * 0.02 + dx * f; p.vy += dy * f * d * 0.02 + dy * f;
+        q.vx -= dx * f * d * 0.02 + dx * f; q.vy -= dy * f * d * 0.02 + dy * f;
+      }
+      for (const n of nodes) {
+        if (n === dragNode) continue;                     // the hand owns it right now
+        if (n.pinned) {                                   // your placement beats the simulation
+          n.x += (n.pinX - n.x) * 0.2; n.y += (n.pinY - n.y) * 0.2;
+          n.vx = 0; n.vy = 0; continue;
+        }
+        const A = anchors[n.zone];
+        n.vx += (A.x - n.x) * 0.014 * alpha; n.vy += (A.y - n.y) * 0.014 * alpha;
+        n.vx *= 0.85; n.vy *= 0.85;
+        n.x += n.vx; n.y += n.vy;
+      }
+      alpha *= 0.994;
+    }
+    function orbitStep() {
+      let maxd = 0;
+      for (const n of nodes) {
+        if (n === dragNode) continue;                     // gravity resumes the moment you let go
+        let tx, ty;
+        // pins are Galaxy-only; cosmos/orbit obey zone gravity (target their layout, ignore pins).
+        if (mode === 'cosmos') { tx = n.cx; ty = n.cy; }
+        else if (mode === 'galaxy') { tx = n.pinned ? n.pinX : n.gx; ty = n.pinned ? n.pinY : n.gy; }
+        else { tx = n.ox; ty = n.oy; }
+        const dx = tx - n.x, dy = ty - n.y;
+        maxd = Math.max(maxd, Math.abs(dx), Math.abs(dy));
+        n.x += dx * 0.16; n.y += dy * 0.16;
+      }
+      orbitMoving = maxd > 0.3;
+    }
+
+    function grid() {
+      let step = 48;
+      while (step * view.k < 26) step *= 2;
+      while (step * view.k > 96) step /= 2;
+      const x0 = (-vw / 2 - view.x) / view.k, y0 = (-vh / 2 - view.y) / view.k;
+      const x1 = x0 + vw / view.k, y1 = y0 + vh / view.k;
+      ctx.globalAlpha = 0.10; ctx.fillStyle = mutedCol;
+      const r = 1 / view.k;
+      let rowI = 0;
+      for (let gy = Math.floor(y0 / step) * step; gy < y1; gy += step, rowI++) {
+        const off = (rowI % 2) * step / 2;
+        for (let gx = Math.floor(x0 / step) * step - off; gx < x1; gx += step)
+          ctx.fillRect(gx - r / 2, gy - r / 2, r, r);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Map label font: mono in pixel-art mode, sans in classic (reads live on toggle).
+    const MF = () => document.documentElement.getAttribute('data-pixel') === 'on' ? '"SFMono-Regular",ui-monospace,Menlo,monospace' : 'sans-serif';
+    function drawCosmos() {
+      // Memory disc — the soft nebula the zone swarms live in.
+      const g = ctx.createRadialGradient(0, 0, cosmos.memR0 * 0.4, 0, 0, cosmos.memR1 + 30);
+      g.addColorStop(0, 'rgba(124,110,240,0.05)');
+      g.addColorStop(0.75, 'rgba(124,110,240,0.10)');
+      g.addColorStop(1, 'rgba(124,110,240,0)');
+      ctx.globalAlpha = 1; ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(0, 0, cosmos.memR1 + 30, 0, 7); ctx.fill();
+      // Ring guides with a soft glow, like orbit lines.
+      for (const ring of cosmos.rings) {
+        const col = ring.col || zoneColor(ring.z);
+        ctx.save();
+        ctx.globalAlpha = 0.5; ctx.strokeStyle = col; ctx.lineWidth = 1.2 / view.k;
+        ctx.shadowColor = col; ctx.shadowBlur = 10;
+        ctx.beginPath(); ctx.arc(0, 0, ring.r, 0, 7); ctx.stroke();
+        ctx.restore();
+      }
+      // Big letter-spaced band labels (top of each band).
+      try { ctx.letterSpacing = (5 / view.k) + 'px'; } catch { /* older canvas */ }
+      ctx.textAlign = 'center';
+      const bands = [];
+      if (zones.skills) bands.push([zoneLabel('skills').toUpperCase(), 145, zoneColor('skills')]);
+      bands.push(['MEMORY', cosmos.memR0 + 26, 'rgba(147,130,255,0.9)']);
+      for (const ring of cosmos.rings) if (ring.style !== 'sparkle')
+        bands.push([ring.label || zoneLabel(ring.z).toUpperCase(), ring.r + 26, ring.col || zoneColor(ring.z)]);
+      for (const [txt, r, col] of bands) {
+        ctx.globalAlpha = 0.85; ctx.fillStyle = col;
+        ctx.font = '600 ' + Math.max(15, 19 / view.k) + 'px ' + MF();
+        ctx.fillText(txt, 0, -r);
+      }
+      try { ctx.letterSpacing = '0px'; } catch { /* ignore */ }
+      // Zone swarm labels inside the disc.
+      for (const L of cosmos.labels) {
+        ctx.globalAlpha = 0.9; ctx.fillStyle = L.c;
+        ctx.font = '600 ' + (11.5 / Math.min(1, view.k)) + 'px ' + MF();
+        ctx.fillText(L.text, L.x, L.y);
+      }
+      ctx.globalAlpha = 1;
+    }
+    function draw() {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, vw, vh);
+      ctx.translate(vw / 2 + view.x, vh / 2 + view.y);
+      ctx.scale(view.k, view.k);
+      grid();
+      const cosmosMode = mode === 'cosmos';
+      if (cosmosMode) drawCosmos();
+      // Galaxy shows community clusters — files are the point, so keep them fully visible
+      // at every zoom (no zone-style semantic fade).
+      const t = (cosmosMode || mode === 'galaxy') ? 1 : fileT();
+      const neighbors = new Set();
+      if (hover) { neighbors.add(hover.slug);
+        for (const [p, q] of edges) { if (p === hover) neighbors.add(q.slug); if (q === hover) neighbors.add(p.slug); } }
+      // Aggregated zone↔zone links — the low-zoom picture of how zones connect.
+      if (t < 1 && mode !== 'galaxy') {
+        for (const zk of Object.keys(zonePair)) {
+          const [z1, z2] = zk.split('|');
+          if (hidden.has(z1) || hidden.has(z2)) continue;
+          const A = anchors[z1], B = anchors[z2];
+          ctx.globalAlpha = 0.22 * (1 - t);
+          ctx.strokeStyle = mutedCol;
+          ctx.lineWidth = Math.min(7, 0.8 + zonePair[zk] * 0.5) / view.k;
+          ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke();
+        }
+      }
+      // File-level edges fade in with zoom. A dropdown selection behaves like a sticky hover:
+      // edges touching a selected root light up, the rest fall back.
+      if (t > 0) for (const [p, q] of edges) {
+        if (!visible(p) || !visible(q)) continue;
+        const hot = (hover && (p === hover || q === hover))
+          || (focusRoots.size > 0 && (focusRoots.has(p.slug) || focusRoots.has(q.slug)));
+        const dim = (query && !(matches(p) && matches(q))) || ((hover || focusRoots.size > 0) && !hot);
+        ctx.globalAlpha = (hot ? 0.85 : dim ? 0.04 : (cosmosMode ? 0.07 : 0.14)) * t;
+        ctx.strokeStyle = hot ? zoneColor(p.zone) : mutedCol;
+        ctx.lineWidth = (hot ? 1.6 : 1) / view.k;
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+      }
+      // Center hub
+      ctx.globalAlpha = 0.9; ctx.fillStyle = inkCol;
+      ctx.beginPath(); ctx.arc(0, 0, 5 / Math.sqrt(view.k), 0, 7); ctx.fill();
+      ctx.globalAlpha = 0.75; ctx.fillStyle = mutedCol;
+      ctx.font = (11 / view.k) + 'px ' + MF(); ctx.textAlign = 'center';
+      ctx.fillText(centerName, 0, -12 / view.k);
+      // Files (semantic zoom: fade in as you approach)
+      if (t > 0) for (const n of nodes) {
+        if (!visible(n)) continue;
+        const st = zoneStyle(n.zone);
+        const dimQ = query && !matches(n);
+        const dimH = (hover && !neighbors.has(n.slug)) || (focusSet && !focusSet.has(n.slug));
+        ctx.globalAlpha = (dimQ ? 0.08 : dimH ? 0.18 : 0.95) * t;
+        ctx.fillStyle = nodeColor(n);
+        if (cosmosMode && n.zone === 'projects') {
+          drawShape(ctx, 'hex', n.x, n.y, 15);
+          ctx.fillStyle = '#fff';
+          ctx.font = '600 13px ' + MF(); ctx.textAlign = 'center';
+          ctx.fillText((n.title[0] || '?').toUpperCase(), n.x, n.y + 4.5);
+        } else if (cosmosMode && n.zone === 'tasks') {
+          ctx.strokeStyle = st.c; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.arc(n.x, n.y, 11, 0, 7); ctx.stroke();
+          ctx.beginPath(); ctx.arc(n.x, n.y, 4.5, 0, 7); ctx.fill();
+          ctx.beginPath(); ctx.arc(n.x + 11, n.y - 3, 2, 0, 7); ctx.fill();
+        } else {
+          drawShape(ctx, st.s, n.x, n.y, cosmosMode ? Math.min(n.r, 7) : n.r);
+        }
+        if (n.deg >= 5 && !dimQ && !dimH && !cosmosMode) {
+          ctx.globalAlpha = 0.25 * t;
+          ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 4, 0, 7); ctx.fill();
+        }
+        // Dropdown-selected roots wear a ring so the picked node reads at a glance.
+        if (focusRoots.has(n.slug)) {
+          ctx.globalAlpha = 0.9 * t; ctx.strokeStyle = nodeColor(n); ctx.lineWidth = 2 / view.k;
+          ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 7 / view.k, 0, 7); ctx.stroke();
+        }
+        // Label policy: on hover → the focused node + its neighbours only (clean focus);
+        // with a dropdown selection → its neighbourhood; otherwise by density mode
+        // (hubs / all / none), plus matches + when zoomed in.
+        const isHubNode = n.deg >= hubCut;
+        const label = hover
+          ? (n === hover || neighbors.has(n.slug))
+          : focusSet
+            ? focusSet.has(n.slug)
+            : ((query && matches(n)) || view.k > 1.9 || labelMode === 'all' || (labelMode === 'hubs' && isHubNode));
+        if (label && !dimQ) {
+          const txt = n.title.length > 30 ? n.title.slice(0, 28) + '…' : n.title;
+          ctx.font = '600 ' + (10.5 / view.k) + 'px ' + MF(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          const tw = ctx.measureText(txt).width, pad = 5 / view.k, bh = 15 / view.k, ly = n.y - n.r - 10 / view.k;
+          ctx.globalAlpha = (n === hover ? 0.97 : 0.78) * t;             // readable pill behind the text
+          ctx.fillStyle = labelBg;
+          roundRect(ctx, n.x - tw / 2 - pad, ly - bh / 2, tw + pad * 2, bh, 5 / view.k); ctx.fill();
+          ctx.globalAlpha = (n === hover ? 1 : 0.9) * t;
+          ctx.fillStyle = inkCol;
+          ctx.fillText(txt, n.x, ly);
+        }
+      }
+      ctx.textBaseline = 'alphabetic';   // reset after the pill labels (drawn with 'middle')
+      // Zone hubs: the zoomed-out reading of the base (shape, count inside, name below).
+      const hubA = cosmosMode ? 0 : 1 - t * 0.9;
+      if (!cosmosMode && mode !== 'galaxy') for (const z of zoneNames) {
+        if (hidden.has(z)) continue;
+        const A = anchors[z], st = zoneStyle(z);
+        if (hubA > 0.03) {
+          ctx.globalAlpha = hubA * (hoverHub === z ? 1 : 0.88);
+          ctx.fillStyle = st.c;
+          drawShape(ctx, st.s, A.x, A.y, A.hubR);
+          ctx.globalAlpha = hubA; ctx.fillStyle = '#fff';
+          ctx.font = '600 ' + Math.max(11, A.hubR * 0.62) + 'px ' + MF(); ctx.textAlign = 'center';
+          if (st.s !== 'ring') ctx.fillText(String(zones[z].length), A.x, A.y + A.hubR * 0.22);
+        }
+        ctx.globalAlpha = Math.max(0.55, hubA);
+        ctx.fillStyle = st.c;
+        ctx.font = '600 ' + (12.5 / Math.min(1, view.k)) + 'px ' + MF(); ctx.textAlign = 'center';
+        ctx.fillText(zoneLabel(z).toUpperCase() + (hubA < 0.5 ? ' · ' + zones[z].length : ''),
+                     A.x, A.y - A.hubR - 10 / Math.min(1, view.k));
+      }
+      // Galaxy: label each community cluster in its own colour (what the folder view can't show).
+      if (mode === 'galaxy') for (const gc of galaxyClusters) {
+        ctx.globalAlpha = 0.92; ctx.fillStyle = commColor(gc.cid);
+        ctx.font = '600 ' + (13 / Math.min(1, view.k)) + 'px ' + MF(); ctx.textAlign = 'center';
+        const lbl = gc.label.length > 26 ? gc.label.slice(0, 24) + '…' : gc.label;
+        ctx.fillText(lbl, gc.x, gc.y - gc.rad - 18 / Math.min(1, view.k));
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function frame() {
+      const cam = camMoving();
+      if (cam) camStep();
+      if (mode === 'orbit' || mode === 'cosmos' || mode === 'galaxy') orbitStep();
+      if (needFrame || cam || ((mode === 'orbit' || mode === 'cosmos' || mode === 'galaxy') && orbitMoving)) { draw(); needFrame = false; }
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+
+    // Interactions: drag a node (whiteboard), pan the board, zoom, hover, click, touch.
+    function toWorld(mx, my) { return { x: (mx - vw / 2 - view.x) / view.k, y: (my - vh / 2 - view.y) / view.k }; }
+    function pick(mx, my) {
+      if (mode !== 'cosmos' && fileT() < 0.5) return null;   // zones view — files aren't clickable yet
+      const g = toWorld(mx, my);
+      let best = null, bd = 1e9;
+      for (const n of nodes) {
+        if (!visible(n)) continue;
+        const dx = n.x - g.x, dy = n.y - g.y, d = Math.sqrt(dx * dx + dy * dy);
+        const hitR = n.r;
+        if (d < hitR + 6 / view.k && d < bd) { best = n; bd = d; }
+      }
+      return best;
+    }
+    function pickHub(mx, my) {
+      if (mode === 'cosmos' || fileT() >= 0.5) return null;
+      const g = toWorld(mx, my);
+      for (const z of zoneNames) {
+        if (hidden.has(z)) continue;
+        const A = anchors[z];
+        if (Math.hypot(A.x - g.x, A.y - g.y) < A.hubR + 10 / view.k) return z;
+      }
+      return null;
+    }
+    function zoomBy(factor, cx, cy) {
+      const mx = (cx ?? vw / 2) - vw / 2, my = (cy ?? vh / 2) - vh / 2;
+      const k2 = Math.min(6, Math.max(0.1, camT.k * factor));
+      camT.x = mx - (mx - camT.x) * (k2 / camT.k);
+      camT.y = my - (my - camT.y) * (k2 / camT.k);
+      camT.k = k2; needFrame = true; persist();
+    }
+    function zoomToZone(z) {
+      const A = anchors[z];
+      camT.k = 0.95;
+      camT.x = -A.x * camT.k; camT.y = -A.y * camT.k;
+      needFrame = true; persist();
+    }
+    canvas.addEventListener('mousedown', e => {
+      const rect = canvas.getBoundingClientRect();
+      const n = pick(e.clientX - rect.left, e.clientY - rect.top);
+      moved = 0;
+      if (n) { dragNode = n; canvas.classList.add('dragging'); }
+      else { panDrag = { x: e.clientX, y: e.clientY }; canvas.classList.add('dragging'); }
+    });
+    window.addEventListener('mousemove', onMove);
+    function onMove(e) {
+      const rect = canvas.getBoundingClientRect();
+      if (dragNode) {
+        const g = toWorld(e.clientX - rect.left, e.clientY - rect.top);
+        dragNode.x = g.x; dragNode.y = g.y; moved += 3;
+        if (mode === 'galaxy') alpha = Math.max(alpha, 0.12);
+        needFrame = true; return;
+      }
+      if (panDrag) {
+        view.x += e.clientX - panDrag.x; view.y += e.clientY - panDrag.y;
+        camT.x = view.x; camT.y = view.y; camT.k = view.k;
+        moved += Math.abs(e.clientX - panDrag.x) + Math.abs(e.clientY - panDrag.y);
+        panDrag = { x: e.clientX, y: e.clientY }; needFrame = true; return;
+      }
+      const h = pick(e.clientX - rect.left, e.clientY - rect.top);
+      const hz = pickHub(e.clientX - rect.left, e.clientY - rect.top);
+      if (h !== hover || hz !== hoverHub) { hover = h; hoverHub = hz; needFrame = true; }
+      canvas.style.cursor = (h || hz) ? 'pointer' : 'grab';
+      if (h) {
+        tip.style.display = 'block';
+        tip.style.left = Math.min(vw - 300, e.clientX - rect.left + 14) + 'px';
+        tip.style.top = (e.clientY - rect.top + 14) + 'px';
+        tip.innerHTML = '<b>' + escapeHtml(h.title) + '</b><small>' + escapeHtml(zoneLabel(h.zone))
+          + (h.a.updated ? ' · upd. ' + escapeHtml(h.a.updated) : '') + ' · ' + h.deg + ' link(s)</small>'
+          + (h.a.summary ? '<div style="margin-top:4px">' + escapeHtml(h.a.summary) + '</div>' : '');
+      } else if (hz) {
+        tip.style.display = 'block';
+        tip.style.left = Math.min(vw - 300, e.clientX - rect.left + 14) + 'px';
+        tip.style.top = (e.clientY - rect.top + 14) + 'px';
+        tip.innerHTML = '<b>' + escapeHtml(zoneLabel(hz)) + '</b><small>' + zones[hz].length
+          + ' article(s) — click to zoom in</small>';
+      } else tip.style.display = 'none';
+    }
+    window.addEventListener('mouseup', e => {
+      canvas.classList.remove('dragging');
+      if (dragNode) {
+        if (moved < 5) location.hash = dragNode.slug;
+        else if (mode === 'galaxy') { dragNode.pinned = true; dragNode.pinX = dragNode.x; dragNode.pinY = dragNode.y; }
+        else orbitMoving = true;                           // cosmos/orbit: spring back to the zone
+        persist();
+      }
+      else if (panDrag && moved < 5) {
+        const rect = canvas.getBoundingClientRect();
+        const hz = pickHub(e.clientX - rect.left, e.clientY - rect.top);
+        if (hz) zoomToZone(hz);
+        else if (hover) location.hash = hover.slug;
+        else persist();
+      }
+      else if (panDrag) persist();
+      dragNode = null; panDrag = null;
+    });
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      zoomBy(Math.exp(-e.deltaY * 0.0012), e.clientX - rect.left, e.clientY - rect.top);
+    }, { passive: false });
+    let touch = null;
+    canvas.addEventListener('touchstart', e => {
+      const rect = canvas.getBoundingClientRect();
+      if (e.touches.length === 1) {
+        const t0 = e.touches[0];
+        const n = pick(t0.clientX - rect.left, t0.clientY - rect.top);
+        touch = { x: t0.clientX, y: t0.clientY, moved: 0, node: n || null };
+        if (n) dragNode = n;
+      } else if (e.touches.length === 2) {
+        touch = { d: Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY), k: view.k };
+      }
+    }, { passive: true });
+    canvas.addEventListener('touchmove', e => {
+      if (!touch) return;
+      const rect = canvas.getBoundingClientRect();
+      if (e.touches.length === 1 && 'x' in touch) {
+        const t0 = e.touches[0];
+        if (touch.node) {
+          const g = toWorld(t0.clientX - rect.left, t0.clientY - rect.top);
+          touch.node.x = g.x; touch.node.y = g.y;
+          if (mode === 'galaxy') alpha = Math.max(alpha, 0.12);
+        } else { view.x += t0.clientX - touch.x; view.y += t0.clientY - touch.y; camT.x = view.x; camT.y = view.y; }
+        touch.moved = (touch.moved || 0) + Math.abs(t0.clientX - touch.x) + Math.abs(t0.clientY - touch.y);
+        touch.x = t0.clientX; touch.y = t0.clientY; needFrame = true;
+      } else if (e.touches.length === 2 && 'd' in touch) {
+        const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        view.k = Math.min(6, Math.max(0.1, touch.k * d / touch.d)); camT.k = view.k; needFrame = true;
+      }
+    }, { passive: true });
+    canvas.addEventListener('touchend', e => {
+      if (touch && 'x' in touch) {
+        if (touch.node && (touch.moved || 0) < 8) location.hash = touch.node.slug;
+        else if (touch.node) {
+          if (mode === 'galaxy') { touch.node.pinned = true; touch.node.pinX = touch.node.x; touch.node.pinY = touch.node.y; }
+          else orbitMoving = true;
+        }
+        if (!touch.node && (touch.moved || 0) < 8) {
+          const rect = canvas.getBoundingClientRect();
+          const hz = pickHub(touch.x - rect.left, touch.y - rect.top);
+          if (hz) zoomToZone(hz);
+        }
+        persist();
+      }
+      dragNode = null;
+      touch = null;
+    });
+
+    // Toolbar
+    const q = document.getElementById('map-q');
+    q.addEventListener('input', () => { query = q.value.trim().toLowerCase(); needFrame = true; });
+    q.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const m = nodes.filter(n => visible(n) && matches(n));
+        if (m.length === 1) location.hash = m[0].slug;
+      }
+    });
+    const LABEL_MODES = ['hubs', 'all', 'none'];
+    const lb = document.getElementById('mb-labels');
+    const cb = document.getElementById('mb-color');
+    const syncLabelBtn = () => { lb.textContent = 'Labels: ' + labelMode; };
+    const syncColorBtn = () => { cb.textContent = 'Colour: ' + colorBy; };
+    syncLabelBtn(); syncColorBtn();
+    lb.onclick = () => { labelMode = LABEL_MODES[(LABEL_MODES.indexOf(labelMode) + 1) % LABEL_MODES.length]; syncLabelBtn(); needFrame = true; persist(); };
+    cb.onclick = () => { colorBy = colorBy === 'zone' ? 'cluster' : 'zone'; colorTouched = true; syncColorBtn(); buildLegend(); needFrame = true; persist(); };
+    const bG = document.getElementById('mb-galaxy'), bO = document.getElementById('mb-orbit'),
+          bC = document.getElementById('mb-cosmos');
+    function setMode(m) {
+      mode = m;
+      bC.classList.toggle('active', m === 'cosmos');
+      bG.classList.toggle('active', m === 'galaxy');
+      bO.classList.toggle('active', m === 'orbit');
+      orbitMoving = true;                                  // every mode eases deterministically to its target layout
+      needFrame = true; persist();
+    }
+    bC.onclick = () => setMode('cosmos');
+    bG.onclick = () => { if (!colorTouched && colorBy !== 'cluster') { colorBy = 'cluster'; syncColorBtn(); buildLegend(); } setMode('galaxy'); };
+    bO.onclick = () => setMode('orbit');
+    setMode(mode);
+    document.getElementById('mb-zin').onclick = () => zoomBy(1.35);
+    document.getElementById('mb-zout').onclick = () => zoomBy(1 / 1.35);
+    document.getElementById('mb-fit').onclick = fitView;
+    document.getElementById('mb-reset').onclick = () => {
+      try { localStorage.removeItem(storeKey); } catch { /* nothing saved anyway */ }
+      for (const n of nodes) {
+        n.pinned = false; n.pinX = n.pinY = undefined; n.vx = 0; n.vy = 0;
+        if (mode === 'orbit') { n.x = n.ox; n.y = n.oy; continue; }
+        if (mode === 'cosmos') { n.x = n.cx; n.y = n.cy; continue; }
+        if (mode === 'galaxy') { n.x = n.gx; n.y = n.gy; continue; }
+      if (mode === 'cosmos') { n.x = n.cx; n.y = n.cy; continue; }
+        const A = anchors[n.zone];
+        const spread = 60 + Math.sqrt(zones[n.zone].length) * 16;
+        n.x = A.x + (Math.random() - 0.5) * spread; n.y = A.y + (Math.random() - 0.5) * spread;
+      }
+      if (mode === 'galaxy') alpha = 1; else orbitMoving = true;
+      needFrame = true;
+      setTimeout(fitView, 700);   // let the layout breathe, then frame the result
+    };
+
+    mapStop = () => {
+      cancelAnimationFrame(raf); ro.disconnect(); clearTimeout(persistT);
+      window.removeEventListener('mousemove', onMove);
+      document.removeEventListener('click', onDocClick);
+      mq.removeEventListener('change', onScheme);
+      main.classList.remove('map-mode');
+    };
+  }
+
+  // ===== Projects (📁) — list + per-project detail (task history, version, links) =====
+  const projInfo = (slug) => {
+    const pt = D.articles.filter(a => a.path.split('/')[0] === 'tasks' && a.project === slug);
+    const done = pt.filter(t => t.status === 'done');
+    const open = pt.filter(t => t.status !== 'done' && t.status !== 'archived');
+    return { pt, done, open };
+  };
+  const projActive = p => p.status === 'active' || (p.tags || []).includes('status-active');
+  const escAttr = s => escapeHtml(String(s == null ? '' : s)).replace(/"/g, '&quot;');
+
+  // Project version — real repo versioning when the project is mapped in repos.json
+  // (reindex probes the local clone: latest git tag ≈ the GitHub release, the version
+  // declared in package.json/plugin.json/CHANGELOG = the internal, not-yet-released one,
+  // plus dirty/unpushed markers). Falls back to the internal task counter v1.<shipped>.
+  const semNewer = (a, b) => {   // true when a > b, comparing dotted numbers
+    const A = String(a).split('.').map(Number), B = String(b).split('.').map(Number);
+    for (let i = 0; i < Math.max(A.length, B.length); i++) {
+      const x = A[i] || 0, y = B[i] || 0;
+      if (x !== y) return x > y;
+    }
+    return false;
+  };
+  const projVer = (p, doneCount) => {
+    const V = p.ver;
+    if (V && (V.internal || V.tag)) {
+      const gh = V.tag ? String(V.tag).replace(/^v/i, '') : null;
+      const int = V.internal ? String(V.internal).replace(/^v/i, '') : null;
+      const intAhead = !!(int && (!gh || semNewer(int, gh)) && int !== gh);
+      const cur = intAhead ? int : (gh || int);
+      const dev = intAhead || !!V.dirty || (V.ahead | 0) > 0;   // work not (fully) on GitHub yet
+      const bits = [gh ? 'GitHub release: v' + gh : 'no release tag yet'];
+      if (intAhead) bits.push('internal: v' + int + ' (not released)');
+      if ((V.ahead | 0) > 0) bits.push(V.ahead + ' commit' + (V.ahead > 1 ? 's' : '') + ' not pushed');
+      if (V.dirty) bits.push('uncommitted changes');
+      if (V.branch) bits.push('on ' + V.branch);
+      return { label: 'v' + cur + (V.dirty ? '*' : ''), cls: dev ? ' dev' : '', title: bits.join(' · '), V, gh, int, intAhead };
+    }
+    return { label: 'v1.' + doneCount, cls: '', title: 'internal task versioning — +1 per shipped task', V: null };
+  };
+
+  function showProjects() {
+    const c = document.getElementById('content');
+    const PC = zoneColor('projects');
+    const projects = D.articles.filter(a => a.path.split('/')[0] === 'projects');
+    const sorted = projects.slice().sort((a, b) => {
+      const A = projInfo(a.slug), B = projInfo(b.slug);
+      return (projActive(b) - projActive(a))
+        || ((B.open.length + B.done.length) - (A.open.length + A.done.length))
+        || a.title.localeCompare(b.title);
+    });
+    let html = '<article><h1><span class="dot" style="background:' + PC + ';width:12px;height:12px"></span>Projects</h1>'
+      + '<div class="meta"><span class="chip">' + projects.length + ' projects</span>'
+      + '<span>· version from the linked repo (amber = ahead of GitHub, * = uncommitted) or v1.N per shipped task · click a project for details</span></div><div class="proj-grid">';
+    for (const p of sorted) {
+      const I = projInfo(p.slug);
+      const vi = projVer(p, I.done.length);
+      html += '<div class="proj-card" onclick="location.hash=\'project:' + encodeURIComponent(p.slug) + '\'">'
+        + '<div class="proj-top"><b>' + escapeHtml(p.title) + '</b><span class="proj-ver' + vi.cls + '" title="' + escAttr(vi.title) + '">' + escapeHtml(vi.label) + '</span></div>'
+        + '<div class="proj-sum">' + escapeHtml(p.summary || '') + '</div><div class="proj-foot">'
+        + (projActive(p) ? '<span class="st active">active</span>' : '<span class="st">' + escapeHtml(p.status || '') + '</span>')
+        + (p.resource ? '<span class="pchip">🔗 link</span>' : '')
+        + '<span class="pchip">✅ ' + I.done.length + ' · 🔨 ' + I.open.length + '</span>'
+        + '</div></div>';
+    }
+    html += '</div></article>';
+    c.innerHTML = html;
+    document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', !!e.dataset.projects));
+    document.getElementById('main').scrollTop = 0;
+  }
+
+  function showProject(slug) {
+    const c = document.getElementById('content');
+    const p = bySlug[slug];
+    if (!p || p.path.split('/')[0] !== 'projects') { c.innerHTML = '<div id="empty">Project not found: ' + escapeHtml(slug) + '</div>'; return; }
+    const PC = zoneColor('projects');
+    const tasks = D.articles.filter(a => a.path.split('/')[0] === 'tasks' && a.project === slug);
+    const done = tasks.filter(t => t.status === 'done')
+      .sort((a, b) => String(a.updated || a.due || '').localeCompare(String(b.updated || b.due || '')));  // oldest→newest
+    const open = tasks.filter(t => t.status !== 'done' && t.status !== 'archived');
+    const vi = projVer(p, done.length);
+
+    let html = '<article><div class="parent-link">← <a href="#projects">All projects</a></div>';
+    html += '<div class="proj-hero"><h1>' + escapeHtml(p.title) + '</h1>'
+      + '<span class="proj-ver' + vi.cls + '" title="' + escAttr(vi.title) + '">' + escapeHtml(vi.label) + '</span>'
+      + (projActive(p) ? '<span class="st active">active</span>' : '<span class="st">' + escapeHtml(p.status || '') + '</span>') + '</div>';
+    html += '<div class="meta">';
+    if (p.resource) html += '<a class="proj-link" href="' + escapeHtml(p.resource) + '" target="_blank" rel="noopener">🔗 ' + escapeHtml(p.resource.replace(/^https?:\/\//, '')) + ' ↗</a>';
+    if (vi.V) {   // repo-linked: spell out GitHub vs internal state next to the link
+      html += '<span class="chip">GitHub: ' + (vi.gh ? 'v' + escapeHtml(vi.gh) : 'no release yet') + '</span>';
+      if (vi.intAhead) html += '<span class="chip vwarn">internal v' + escapeHtml(vi.int) + ' — not released</span>';
+      if ((vi.V.ahead | 0) > 0) html += '<span class="chip vwarn">↑' + vi.V.ahead + ' unpushed</span>';
+      if (vi.V.dirty) html += '<span class="chip vwarn">● uncommitted changes</span>';
+      if (vi.V.branch && vi.V.branch !== 'main' && vi.V.branch !== 'master') html += '<span class="chip">⎇ ' + escapeHtml(vi.V.branch) + '</span>';
+    }
+    if (p.updated) html += '<span class="chip">upd. ' + escapeHtml(p.updated) + '</span>';
+    for (const t of (p.tags || [])) html += '<span class="chip">' + escapeHtml(t) + '</span>';
+    html += '</div>';
+
+    html += '<div class="proj-sec"><h2>📋 About</h2>' + (p.html || ('<p>' + escapeHtml(p.summary || '') + '</p>')) + '</div>';
+
+    html += '<div class="proj-sec"><h2>🏷 Version history <span class="lvchip">' + escapeHtml(vi.label) + '</span></h2>';
+    if (done.length) {
+      html += '<div class="changelog">';
+      for (let i = done.length - 1; i >= 0; i--) {
+        const t = done[i];
+        // Repo-linked projects: the repo owns the version numbers, tasks are the shipped log (#N).
+        html += '<div class="clog"><span class="cv">' + (vi.V ? '#' + (i + 1) : 'v1.' + (i + 1)) + '</span>'
+          + '<span class="ct">' + escapeHtml(t.title) + '</span>'
+          + '<span class="cm">' + (t.updated ? '· ' + escapeHtml(t.updated) : '') + '</span></div>';
+      }
+      html += '</div>';
+    } else html += '<span class="bempty">' + (vi.V ? 'No shipped tasks yet.' : 'v1.0 — no shipped tasks yet. Each completed task bumps the version.') + '</span>';
+    html += '</div>';
+
+    html += '<div class="proj-sec"><h2>🔨 In progress <span class="lvchip">' + open.length + '</span></h2>';
+    if (open.length) {
+      html += '<div class="proj-tasks">';
+      for (const t of open.sort((a, b) => String(a.due || '9999').localeCompare(String(b.due || '9999')))) {
+        html += '<div class="step st-' + escapeHtml(t.status) + '" onclick="location.hash=\'' + escapeHtml(t.slug) + '\'">'
+          + '<span class="btag st st-' + escapeHtml(t.status) + '">' + escapeHtml(t.status) + '</span>'
+          + '<span class="sttl">' + escapeHtml(t.title) + '</span>'
+          + '<span class="cm">' + (t.due ? '📅 ' + escapeHtml(t.due) : '') + '</span></div>';
+      }
+      html += '</div>';
+    } else html += '<span class="bempty">Nothing open.</span>';
+    html += '</div></article>';
+
+    c.innerHTML = html;
+    document.querySelectorAll('.item').forEach(e => e.classList.toggle('active', !!e.dataset.projects));
+    document.getElementById('main').scrollTop = 0;
+  }
+
   function route() {
     const raw = location.hash.slice(1);
     if (!raw) return;
-    if (raw === 'board') showBoard();
-    else if (raw === 'settings') showSettings();
-    else if (raw.startsWith('brief:')) showBrief(decodeURIComponent(raw.slice(6)));
-    else show(decodeURIComponent(raw));
+    const main = document.getElementById('main');
+    // Unconditional cleanup — a view that crashed mid-render must never poison the next one
+    // (a stuck map-mode leaves padding:0 + overflow:hidden on every later view).
+    if (raw !== 'board') main.classList.remove('board-mode');
+    if (raw !== 'map') { if (mapStop) { mapStop(); mapStop = null; } main.classList.remove('map-mode'); }
+    try {
+      if (raw === 'projects') showProjects();
+      else if (raw.startsWith('project:')) showProject(decodeURIComponent(raw.slice(8)));
+      else if (raw === 'board') showBoard();
+      else if (raw === 'settings') showSettings();
+      else if (raw === 'map') showMap();
+      else if (raw.startsWith('brief:')) showBrief(decodeURIComponent(raw.slice(6)));
+      else show(decodeURIComponent(raw));
+    } catch (err) {
+      // Fail loud, not blank: drop any half-applied layout mode and show what broke.
+      main.className = '';
+      if (mapStop) { try { mapStop(); } catch (e) {} mapStop = null; }
+      document.getElementById('content').innerHTML =
+        '<article><h1>⚠ View error</h1>'
+        + '<div class="meta"><span class="chip">' + escapeHtml(raw) + '</span><span>· this view crashed — the rest of the app is fine</span></div>'
+        + '<pre>' + escapeHtml(String((err && err.stack) || err)) + '</pre></article>';
+    }
   }
 
   document.getElementById('search').addEventListener('input', e => buildTree(e.target.value));
   window.addEventListener('hashchange', route);
+
+  // Pixel-art skin — opt-in toggle, remembered across sessions (chrome only; article body stays readable)
+  const pixBtn = document.getElementById('pixel-toggle');
+  function applyPixel(on) {
+    document.documentElement.setAttribute('data-pixel', on ? 'on' : 'off');
+    pixBtn.classList.toggle('on', on);
+    pixBtn.title = on ? 'Pixel-art mode: on' : 'Pixel-art mode: off';
+    try { localStorage.setItem('kb-pixel', on ? '1' : '0'); } catch (e) {}
+  }
+  applyPixel((() => { try { return localStorage.getItem('kb-pixel') === '1'; } catch (e) { return false; } })());
+  pixBtn.onclick = () => {
+    applyPixel(document.documentElement.getAttribute('data-pixel') !== 'on');
+    route();   // re-render the current view — views render pixel-specific variants
+  };
 
   buildTree('');
   if (location.hash) route();
