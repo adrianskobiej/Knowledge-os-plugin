@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.32.1
+
+- **Fixed: the edition CI templates could never stop themselves.** Both `template/_ci/` workflows
+  skipped a run when `head_commit.author.username` was `kb-bot` — but that field is GitHub's account
+  lookup from the commit email, and it is empty unless a user with that email exists. With no such
+  account the guard never fired and master → edition → master would ping-pong until the Actions
+  minutes ran out. Matched on `author.name` instead, which is the raw git author the other workflow
+  sets and does not depend on any account existing.
+- **Documented where `KB_BOT_TOKEN` comes from** and why the built-in `GITHUB_TOKEN` cannot do the
+  job (it is scoped to its own repo; these workflows write to another one). A machine account is
+  optional, not required.
+- **Seeded agent mention cards are gitignored.** `_mentions/` and `mentions/` carry a private agent
+  roster and were protected only by `.git/info/exclude`, which is local to one clone and never
+  travels — one `git add -A` from being published.
+
 ## 0.32.0
 
 - **Department editions.** One master base can now publish a partial copy per department: everything
