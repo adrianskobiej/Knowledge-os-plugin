@@ -1,5 +1,5 @@
 ---
-description: Capture a web source (arXiv paper, article, PDF link) into the base's raw/ staging area, ready to distil. Use when the user shares a URL and says "add this to the base", "save this paper/article", "zapisz ten link", "wrzuć to do bazy", "dodaj ten artykuł".
+description: Capture a web source (arXiv paper, article, PDF link) into the base's raw/ staging area, ready to distil. Use when the user shares a URL and says "add this to the base", "save this paper/article", "capture this link".
 argument-hint: <url> [--tags a,b] [--author name]
 allowed-tools: Bash, Read
 ---

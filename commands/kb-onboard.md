@@ -1,5 +1,5 @@
 ---
-description: Onboard a person into the base with the right context for their role — owner/partner (personal + company context, motivation interview), or employee (role card only, no personal context). Use when the user says "add a co-founder/partner", "onboard me as owner", "add an employee", "dodaj wspólnika", "wprowadź nową osobę", or during first setup.
+description: Onboard a person into the base with the right context for their role — owner/partner (personal + company context, motivation interview), or employee (role card only, no personal context). Use when the user says "add a co-founder/partner", "onboard me as owner", "add an employee", "bring in a new person", or during first setup.
 argument-hint: [name] [owner|partner|employee]
 allowed-tools: Read, Write, Edit, Bash
 ---

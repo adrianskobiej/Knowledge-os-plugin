@@ -473,11 +473,11 @@ const surprises = crossZone
 // Suggested questions — things the graph is uniquely placed to answer.
 const orphanArts = active.filter(a => degreeOf(a.slug) === 0);
 const questions = [];
-if (godNodes.length >= 2) questions.push(`Jak „${godNodes[0].title}” łączy się z „${godNodes[1].title}”?`);
-if (surprises.length) questions.push(`Co łączy strefę \`${surprises[0].za}\` ze strefą \`${surprises[0].zb}\` (${bySlug[surprises[0].a].title} ↔ ${bySlug[surprises[0].b].title})?`);
-if (godNodes.length) questions.push(`Które artykuły zależą od „${godNodes[0].title}” — co się rozjedzie, jeśli to zmienimy?`);
-if (communities.length >= 2) questions.push(`Czym różni się obszar „${communities[0].label}” od „${communities[1].label}”?`);
-if (orphanArts.length) questions.push(`Dlaczego ${orphanArts.length} artykuł(ów) jest niepołączonych z resztą bazy — czego brakuje w linkach?`);
+if (godNodes.length >= 2) questions.push(`How does "${godNodes[0].title}" connect to "${godNodes[1].title}"?`);
+if (surprises.length) questions.push(`What links the \`${surprises[0].za}\` zone to the \`${surprises[0].zb}\` zone (${bySlug[surprises[0].a].title} ↔ ${bySlug[surprises[0].b].title})?`);
+if (godNodes.length) questions.push(`Which articles depend on "${godNodes[0].title}" — what breaks if we change it?`);
+if (communities.length >= 2) questions.push(`How does the "${communities[0].label}" area differ from "${communities[1].label}"?`);
+if (orphanArts.length) questions.push(`Why ${orphanArts.length} article(s) sit unconnected from the rest of the base — what links are missing?`);
 
 const byTop = {};
 for (const a of active) (byTop[a.path.split('/')[0]] ??= []).push(a);

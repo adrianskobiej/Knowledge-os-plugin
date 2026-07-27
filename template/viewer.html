@@ -126,7 +126,7 @@
 
   .bcard.overdue { border-color:var(--danger); }
   
-  /* Subtasks (drzewa zadań) — nested plan on the epic card + progress */
+  /* Subtasks (task trees) — nested plan on the epic card + progress */
   .bcard.bepic { border-left:3px solid var(--accent); }
   .bprog { display:flex; align-items:center; gap:8px; margin-top:9px; font-size:11px; color:var(--muted); }
   .bprog .bar { flex:1; height:5px; border-radius:4px; background:var(--chip); overflow:hidden; }
@@ -744,7 +744,7 @@
         if (t.priority) tags += '<span class="btag p-' + escapeHtml(t.priority) + '">⚡ ' + escapeHtml(t.priority) + '</span>';
         const prio = t.priority ? ' prio-' + t.priority : '';
         if (t.recur) tags += '<span class="btag">🔁 ' + escapeHtml(t.recur) + '</span>';
-        const kids = childrenOf(t.slug);   // subtasks (drzewo zadań)
+        const kids = childrenOf(t.slug);   // subtasks (task tree)
         if (kids.length) {
           const doneN = kids.filter(k => k.status === 'done').length;
           const pct = Math.round(doneN / kids.length * 100);

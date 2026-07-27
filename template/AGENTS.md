@@ -205,18 +205,18 @@ When the user's words match an intent, run the matching procedure yourself:
 | "what references X", "what breaks if I change X", "impact of X" | **/kb-links** |
 | "explain X", "what's around X in the base" | **/kb-explain** |
 | "that worked" / "that was a dead end" / "actually the answer was…" | **/kb-save-result** |
-| "what have we learned", "update the lessons", "co się sprawdziło" | **/kb-reflect** |
+| "what have we learned", "update the lessons", "what actually worked" | **/kb-reflect** |
 | shares a URL: "add this paper/article", "zapisz ten link" | **/kb-add** |
 | "remember this", "save this", pastes a doc/note | Add knowledge (dedup first) |
 | recounts a call / "we met with <client>" / pastes meeting notes | offer **/kb-meeting** |
 | "add a task", "I'll do it tomorrow", an action item emerges | offer **/kb-task** |
 | "what's on my plate", "show the board", "what's overdue" | **/kb-board** |
 | "what is <person> working on?", "tasks of <person>" | **/kb-board** (filter by that person) |
-| "let's do my check-in", "podsumujmy dzień", "plan the week", "goals for the month" | **/kb-journal** |
+| "let's do my check-in", "wrap up the day", "plan the week", "goals for the month" | **/kb-journal** |
 | "what's enabled?", "enable journaling", "turn off private goals" | **/kb-settings** |
 | "we're starting a project/engagement <name>" | offer **/kb-new-project** |
-| "add a co-founder / partner", "onboard me / an employee", "dodaj wspólnika", "wprowadź osobę" | **/kb-onboard** |
-| "are we aligned?", "gdzie są zgrzyty?", "does what I do match what I want?", "sprawdź spójność" | **/kb-align** |
+| "add a co-founder / partner", "onboard me / an employee", "bring in a new person" | **/kb-onboard** |
+| "are we aligned?", "where are the tensions?", "does what I do match what I want?" | **/kb-align** |
 | "anything new from the team?" | Sync |
 | "how do I use this?" / seems lost | **/kb-help** |
 

@@ -1,5 +1,5 @@
 ---
-description: Show or change the knowledge base's feature toggles (journaling, goals) and settings — anytime, not just at onboarding. Use when the user says "enable journaling", "turn on/off goals", "włącz dziennik", "what's enabled?", "kb settings", or asks about a ritual that is currently disabled.
+description: Show or change the knowledge base's feature toggles (journaling, goals) and settings — anytime, not just at onboarding. Use when the user says "enable journaling", "turn on/off goals", "what's enabled?", "kb settings", or asks about a ritual that is currently disabled.
 argument-hint: [feature on/off, or empty to show current settings]
 allowed-tools: Bash, Read, Write, Edit
 ---
@@ -25,7 +25,7 @@ Read `knowledge.config.json` and render, in the user's language, a short table:
 4. One line in `wiki/log/log-<author>.md`; the change is shared with the team on the next `/kb-deploy`.
 
 ## Discovery (don't let features rot unused)
-If the user asks for something a DISABLED feature provides (e.g. "podsumujmy dzień" while
+If the user asks for something a DISABLED feature provides (e.g. "let's do my check-in" while
 `journal: false`), don't refuse — say the feature is off and offer to enable it (one sentence).
 A feature that was declined at onboarding can always be enabled here later. Personal opt-outs
 (one person in a team base) → note in their `people/` profile instead of the company config.

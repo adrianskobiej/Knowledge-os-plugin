@@ -1,5 +1,5 @@
 ---
-description: Surface tensions between what the owner/partners personally want and what the company is actually doing. Use when the user asks "are we aligned?", "sprawdź spójność", "gdzie są zgrzyty?", "does what I'm doing match what I want?", "check alignment", or during a monthly review. Compares personal context vs company context + real commitments.
+description: Surface tensions between what the owner/partners personally want and what the company is actually doing. Use when the user asks "are we aligned?", "where are the tensions?", "does what I'm doing match what I want?", "check alignment", or during a monthly review. Compares personal context vs company context + real commitments.
 argument-hint: (none, or a person slug to focus on)
 allowed-tools: Read, Glob, Grep, Bash, Write
 ---

@@ -1,5 +1,5 @@
 ---
-description: Run the AI-journaling ritual — daily check-in ("what did I do today, what blocked me"), weekly planning (agree the top tasks), monthly goals & review (professional/private). Use when the user says "let's do my check-in", "podsumujmy dzień/tydzień", "set goals for the month", "monthly review" — or offer the daily check-in yourself on the first conversation of the day (if features.journal is enabled).
+description: Run the AI-journaling ritual — daily check-in ("what did I do today, what blocked me"), weekly planning (agree the top tasks), monthly goals & review (professional/private). Use when the user says "let's do my check-in", "wrap up the day/week", "set goals for the month", "monthly review" — or offer the daily check-in yourself on the first conversation of the day (if features.journal is enabled).
 argument-hint: [day | week | month-start | month-end (default: day)]
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 ---

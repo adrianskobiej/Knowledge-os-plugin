@@ -1,5 +1,5 @@
 ---
-description: Distil the base's work memory into LESSONS.md — which sources paid off, which were dead ends, what got corrected. Use at the start of a working session, or when the user asks "what have we learned", "podsumuj czego się nauczyliśmy", "update the lessons", "co się sprawdziło".
+description: Distil the base's work memory into LESSONS.md — which sources paid off, which were dead ends, what got corrected. Use at the start of a working session, or when the user asks "what have we learned", "update the lessons", "what actually worked".
 argument-hint: (none)
 allowed-tools: Bash, Read
 ---

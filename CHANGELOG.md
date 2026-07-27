@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.32.2
+
+- **Fixed: the engine emitted Polish into every base.** `reindex.mjs` generated the "Suggested
+  questions" section of `INSIGHTS.md` in Polish, so any base built with this plugin — in any
+  language — got Polish text written into a generated file. Now English, like the rest of the engine.
+- **Removed Polish trigger phrases from command descriptions** and the AGENTS.md routing table.
+  The plugin declares itself English-only; the leftover bilingual triggers contradicted that.
+- **Replaced a private project name used as the `/kb-bench` example** with a generic one.
+- **English-only source comments** in `viewer.html`.
+- **Removed `td_report.md`** — an internal technical-debt audit from before the project had tests,
+  stating as fact that there were none (there are now 28, plus a package.json and CI). A stale
+  working artifact, not documentation.
+
 ## 0.32.1
 
 - **Fixed: the edition CI templates could never stop themselves.** Both `template/_ci/` workflows
