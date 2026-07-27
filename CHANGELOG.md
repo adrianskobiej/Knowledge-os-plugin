@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.33.0
+
+- **`/kb-vocab` — one idea, one name.** Facets only work when a concept is spelled one way. Left
+  alone a base drifts: `website`, `websites` and `www` become three separate facets, and a query
+  that asks for one misses the other two. `scripts/kb-vocab.mjs` finds the drift — terms differing
+  only in case, separators or diacritics (certain duplicates), plurals and misspellings
+  (near-variants), tags outside an agreed vocabulary, and tags used exactly once — and proposes
+  merges ordered by how many articles each touches.
+- **Read-only by design.** It never rewrites an article. Choosing the canonical term is an
+  editorial call, and a bulk rename of someone's tags is not a decision a script should make.
+- **Careful about what it does NOT flag.** A numbered series (`etap-0`…`etap-9`) is a set of
+  deliberate values, not drift. A narrower compound is not a misspelling of the shorter term —
+  `leads-method` merely ends with `ads-method`. Short tags are skipped entirely, because at three
+  characters a single edit links unrelated words. A false merge erases a real distinction, so the
+  bar for suggesting one is deliberately high.
+- **`--lint` catches the certain cases** on every run, so drift surfaces in CI rather than months
+  later during a search that quietly returns half the articles.
+- **Optional `vocabulary.json`** at the base root declares canonical tags, aliases and entity
+  types; a model ships in `_templates/`. Without it the intrinsic checks still run — you get value
+  before curating anything.
+
 ## 0.32.2
 
 - **Fixed: generated output did not match the engine's language.** `reindex.mjs` wrote the

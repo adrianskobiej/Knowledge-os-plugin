@@ -258,6 +258,22 @@ for (const a of articles) {
   else seen[a.slug] = a.path;
 }
 
+// Vocabulary drift — two spellings of one term split a facet in half, so a search that
+// finds one misses the other. Only the certain case is reported here (terms differing
+// solely in case, separators or diacritics); scripts/kb-vocab.mjs does the fuzzy pass.
+// Deliberately inlined rather than imported: /kb-upgrade may refresh reindex.mjs alone.
+{
+  const fold = { ą: 'a', ć: 'c', ę: 'e', ł: 'l', ń: 'n', ó: 'o', ś: 's', ź: 'z', ż: 'z' };
+  const norm = s => String(s).toLowerCase().replace(/[ąćęłńóśźż]/g, c => fold[c]).replace(/[^a-z0-9]/g, '');
+  for (const [field, label] of [['tags', 'Tag'], ['entities', 'Entity']]) {
+    const byNorm = {};
+    for (const a of articles) for (const t of a[field]) (byNorm[norm(t)] ??= new Set()).add(t);
+    for (const [n, set] of Object.entries(byNorm))
+      if (n && set.size > 1)
+        warnings.push(`⚠ ${label} variants of one term: ${[...set].join(' / ')} — pick one (node scripts/kb-vocab.mjs)`);
+  }
+}
+
 // Too short / uninformative summary
 for (const a of articles)
   if (a.summary && a.summary.trim().length < 15)

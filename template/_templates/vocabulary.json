@@ -1,0 +1,32 @@
+{
+  "_comment": [
+    "OPTIONAL. Copy to the base root as vocabulary.json to declare the agreed vocabulary.",
+    "Without this file `node scripts/kb-vocab.mjs` still finds misspellings and near-variants;",
+    "with it, tags outside the agreed set are flagged too.",
+    "Keep it SMALL and specific to your company — a big imported vocabulary matches everything",
+    "and therefore says nothing. Add a term when it earns its place, not in advance."
+  ],
+  "tags": {
+    "canonical": [
+      "process",
+      "decision",
+      "playbook",
+      "metric",
+      "tool",
+      "product",
+      "client",
+      "campaign"
+    ],
+    "aliases": {
+      "procedure": "process",
+      "kpi": "metric",
+      "sop": "playbook"
+    }
+  },
+  "entityTypes": [
+    "client",
+    "product",
+    "person",
+    "vendor"
+  ]
+}

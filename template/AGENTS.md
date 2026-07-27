@@ -282,6 +282,15 @@ first. This keeps it de-duplicated and trustworthy even with many contributors.
 - **`summary`** is the retrieval surface — write it with real keywords (the agent sees only this in
   the index). **`tags`** for facets; **`entities: [client, product, person]`** for cross-cutting
   lookup (a client/product referenced from many articles). Both feed `INDEX-facets.md`.
+- **One idea, one tag name.** A facet only works if a concept is spelled one way — `website` and
+  `websites` are two facets, and a search for one misses the other. Before adding a tag, check what
+  the base already uses (`INDEX-facets.md`); reuse it rather than coining a near-synonym, and don't
+  translate an existing tag into another language. `node scripts/kb-vocab.mjs` (`/kb-vocab`) lists
+  misspellings, plurals and mixed-language duplicates and proposes merges — it never rewrites
+  articles, because picking the canonical term is an editorial call. `--lint` flags the certain
+  cases (terms differing only in case, separators or diacritics) on every run.
+  A tag used on exactly one article is a note, not a facet: prefer folding it into an existing tag.
+  Optional `vocabulary.json` at the base root declares the agreed terms (model in `_templates/`).
 - **`aka: [synonym, synonym]`** — optional aliases for an article (e.g. the owner profile
   `aka: [boss, owner]`). They go into the index line and the viewer search, so grep/search hit
   alternative phrasings.
