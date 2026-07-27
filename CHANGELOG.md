@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.32.0
+
+- **Department editions.** One master base can now publish a partial copy per department: everything
+  marked `company` plus that one department's own knowledge, and nothing else. The boundary is still
+  the repository — each edition is its own repo, so a team physically cannot hold what it was not
+  given — but the master stays a single tree, so the `[[link]]` graph is never split.
+  `node scripts/kb-build.mjs --dept sales --out ../kb-sales` publishes; `kb-collect.mjs` carries the
+  team's own writing back the other way.
+- **The subject of access control is a person, never an agent.** An agent reads whatever clone sits
+  on the machine it was started on, so its reach is already its human's reach — there is no separate
+  agent permission to configure, and none would be trustworthy if there were.
+- **`visibility:` on any article** — `owners` / `company` / `department` (with `department:`), falling
+  back to a path map in `knowledge.config.json` → `access.paths`, falling back to `owners`.
+  **Fail-closed by design:** a forgotten field can never widen reach. `--lint` flags unknown values
+  and `department` reach with no department named.
+- **One writer per path.** Company knowledge flows down and is read-only in an edition; the
+  department's own zone flows up and the master never overwrites it. Because no path has two sources
+  of truth, the two directions cannot collide.
+- **Three fail-closed gates on the way up** (`kb-collect.mjs`): path ownership, no self-promotion to
+  `company`, and the ingest secret scan. Any breach rejects the whole batch and exits non-zero;
+  deletions never propagate without `--allow-deletes`.
+- **`kb-access.mjs`** reports what the current machine reaches — identity, role, departments — and is
+  the shared resolver the other scripts use. **`/kb-edition`** drives all of it.
+- **Automation templates** in `template/_ci/` (inert until you copy them into `.github/workflows/`),
+  including the loop breaker both directions need.
+- `/kb-upgrade` now refreshes the whole `scripts/` directory: the engine scripts import each other,
+  and refreshing one alone could leave a base with a missing module.
+
 ## 0.31.1
 
 - **Reindex lint fix.** The article scan skipped only `INDEX.md`, while zone pagination writes

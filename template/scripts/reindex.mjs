@@ -30,6 +30,17 @@ const STATS = process.argv.includes('--stats');
 const REQUIRED = ['title', 'slug', 'category', 'summary', 'status'];
 const AUTHORITIES = ['primary', 'secondary', 'derived'];
 const CONFIDENCES = ['verified', 'inferred', 'unverified'];  // T21: human-verified vs AI-inferred (≈ Graphify EXTRACTED/INFERRED)
+// Reach of an article when the base is published as per-department editions (kb-build.mjs).
+// `private` is the assistants/ word for the same reach as `owners` — accepted as an alias.
+// Deliberately inlined rather than imported from kb-access.mjs: /kb-upgrade may refresh
+// reindex.mjs alone, and a missing import would take the whole indexer down.
+const VISIBILITIES = ['owners', 'company', 'department'];
+const normVisibility = v => {
+  const s = String(v || '').trim().toLowerCase();
+  if (!s) return '';
+  if (s === 'private' || s === 'owner') return 'owners';
+  return VISIBILITIES.includes(s) ? s : '';
+};
 const WIKILINK = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
 
 // ── Universal auto-reindex (tool-agnostic: Claude / Codex / Antigravity) ──────
@@ -196,6 +207,12 @@ for (const file of files) {
     warnings.push(`⚠ Unknown authority "${meta.authority}" (allowed: ${AUTHORITIES.join('/')}): ${rel}`);
   if (meta.confidence && !CONFIDENCES.includes(meta.confidence))
     warnings.push(`⚠ Unknown confidence "${meta.confidence}" (allowed: ${CONFIDENCES.join('/')}): ${rel}`);
+  const visibility = normVisibility(meta.visibility);
+  if (meta.visibility && !visibility)
+    warnings.push(`⚠ Unknown visibility "${meta.visibility}" (allowed: ${VISIBILITIES.join('/')}): ${rel}`);
+  const departments = Array.isArray(meta.department) ? meta.department : (meta.department ? [meta.department] : []);
+  if (visibility === 'department' && !departments.length)
+    warnings.push(`⚠ visibility: department needs a "department:" field: ${rel}`);
   const wikilinks = [...stripCode(body).matchAll(WIKILINK)].map(m => m[1].trim());
   articles.push({
     slug,
@@ -214,6 +231,10 @@ for (const file of files) {
     authority: meta.authority || '',
     confidence: meta.confidence || '',   // T21: verified | inferred | unverified (optional)
     author: meta.author || '',
+    // Reach when published as department editions. Empty = not stated in frontmatter;
+    // kb-build.mjs then falls back to the path defaults in knowledge.config.json → access.
+    visibility,
+    departments,
     // Task fields (tasks/ zone; harmless empty elsewhere) — power BOARD.md + the viewer board.
     // assignee accepts one slug or a list ([anna, adrian]) — several people can own one task.
     assignees: Array.isArray(meta.assignee) ? meta.assignee : (meta.assignee ? [meta.assignee] : []),

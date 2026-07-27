@@ -354,6 +354,34 @@ Anyone who can clone the base (and any agent running on their machine) can read 
 - A `confidential: true` frontmatter flag is **NOT protection** — anyone with the repo can read it.
   Use it at most as a courtesy hint *inside* an already-restricted base.
 
+## Department editions — one master, many partial copies
+
+Splitting knowledge by hand across many repos costs you the graph. The alternative: keep ONE
+master base and **publish** a per-department edition from it. Each edition is its own repo, so
+the boundary is still the repo — but you write in one place and the `[[links]]` stay whole.
+
+- **The subject of access control is a PERSON, never an agent.** An agent reads whatever clone
+  sits on the machine it was started on, so its reach is already its human's reach. There is
+  nothing separate to filter, and no agent-side rule can be trusted as a boundary.
+- **Reach is `visibility:` in frontmatter** — `owners` (owner + partners), `company` (everyone in
+  the roster), `department` (needs `department: <slug>` or a list). `private` is accepted as an
+  alias for `owners` so one base can use one word.
+- **Unclassified means owners-only.** Anything without `visibility:` falls back to the path map in
+  `knowledge.config.json` → `access.paths`, and anything still unmatched is `owners`.
+  **Fail-closed is the whole point** — one forgotten field must never widen reach.
+- **Publish down:** `node scripts/kb-build.mjs --dept sales --out ../kb-sales` writes the edition.
+  It **never force-pushes** and never overwrites `access.writable` paths — the team owns those.
+- **Collect up:** `node scripts/kb-collect.mjs --dept sales --from ../kb-sales` imports the team's
+  own writing. Three fail-closed gates: path ownership, no self-promotion to `company`, secret scan.
+  Any breach rejects the WHOLE batch, and deletions never propagate without `--allow-deletes`.
+- **One writer per path.** Company knowledge flows down and is read-only in the edition;
+  `departments/<dept>/` flows up and the master never overwrites it. That is why the two
+  directions never collide — no path has two sources of truth.
+- **Reclassification is not retroactive.** Moving an article from `company` to `owners` removes it
+  from the next build, but the old copy stays in that edition's git history forever. Treat a
+  downward reclassification as an incident: rewrite the history or recreate the edition repo.
+- `node scripts/kb-access.mjs` reports what THIS machine reaches — identity, role, departments.
+
 ## Identity, decisions & history (shared base)
 
 - Author from Git, no second source of truth: your author slug comes from `git config user.email` mapped via `roster` in `knowledge.config.json`. Stamp it as `author:` in each article you add, so the file's author matches the commit's author. If your email isn't in the roster, add it.

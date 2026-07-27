@@ -23,6 +23,7 @@
 !/tasks/
 !/journal/
 !/_templates/
+!/_ci/
 !/assets/
 !/scripts/
 !/wiki/

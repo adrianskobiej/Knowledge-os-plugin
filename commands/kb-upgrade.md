@@ -10,7 +10,10 @@ A base gets a COPY of the engine when it is created and never updates itself. Th
 that gap. It upgrades **engine files only** — never the company's content or customizations.
 
 ## What is engine vs. what is theirs (never cross this line)
-- **Engine (safe to overwrite):** `scripts/reindex.mjs`, `viewer.html`, `kb` (launcher).
+- **Engine (safe to overwrite):** everything in `scripts/` (`reindex.mjs`, `kb-access.mjs`,
+  `kb-build.mjs`, `kb-collect.mjs`, `kb-guard.mjs`, …), `viewer.html`, `kb` (launcher).
+  Copy the whole `scripts/` directory — the scripts import each other, and refreshing one
+  alone can leave a base with a missing module.
 - **Theirs (NEVER overwrite):** all content zones (`projects/`, `people/`, …), `knowledge.config.json`
   (except the `version` field), `AGENTS.md`, `_templates/`, `CONTEXT.md`, `now.md`, `quotes.json`,
   `.gitignore` (append-only, see step 5), `wiki/`.
@@ -28,10 +31,12 @@ that gap. It upgrades **engine files only** — never the company's content or c
    pending changes first) so the upgrade is one reviewable, revertible commit. Then
    `git pull --rebase --autostash` so you upgrade the latest state.
 4. **Copy the engine files** from `${CLAUDE_PLUGIN_ROOT}/template/`:
-   `scripts/reindex.mjs`, `viewer.html`, `kb` (keep `kb` executable: `chmod +x kb`).
+   the whole `scripts/` directory, `viewer.html`, `kb` (keep `kb` executable: `chmod +x kb`).
 5. **Ensure generated files are gitignored** (newer engines emit new generated files). Append any of
    these lines that are missing to `.gitignore` — do not rewrite or reorder the file:
    `/INDEX.md`, `/INDEX-facets.md`, `/GAPS.md`, `/kb-data.js`, `/*/INDEX*.md`.
+   In a department EDITION also keep `!/.kb-edition.json` allowed — kb-collect reads that
+   manifest to tell a real edit apart from the link rewriting kb-build does on every publish.
 6. **Stamp the version.** Set `version` in `knowledge.config.json` to the plugin version.
 7. **Verify.** Run `node scripts/reindex.mjs` — it must complete and the health-check should not
    report new structural errors. If it fails, `git checkout -- .` (revert) and report plainly.

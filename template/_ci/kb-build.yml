@@ -1,0 +1,40 @@
+# Publish department editions from the master base. Copy to .github/workflows/ in the MASTER repo.
+# Placeholders to fill: OWNER, the departments matrix, and the edition repo naming.
+name: kb-build
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    # Loop breaker: kb-collect commits as kb-bot, and rebuilding from those would ping-pong forever.
+    if: github.event.head_commit.author.username != 'kb-bot'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dept: [sales, marketing]        # ← your knowledge.config.json → departments
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: master }
+
+      - uses: actions/checkout@v4
+        with:
+          repository: OWNER/kb-${{ matrix.dept }}      # ← the edition repo
+          token: ${{ secrets.KB_BOT_TOKEN }}
+          path: edition
+          fetch-depth: 0
+
+      - name: Build the edition
+        working-directory: master
+        run: node scripts/kb-build.mjs --dept ${{ matrix.dept }} --out ../edition
+
+      - name: Push (never force — the team commits here too)
+        working-directory: edition
+        run: |
+          git config user.name  kb-bot
+          git config user.email kb-bot@users.noreply.github.com
+          git add -A
+          git diff --cached --quiet && echo "nothing to publish" && exit 0
+          git commit -m "kb-build: refresh ${{ matrix.dept }} edition"
+          git push
