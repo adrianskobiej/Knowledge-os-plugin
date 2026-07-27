@@ -1,11 +1,13 @@
 {
   "name": "knowledge-os",
-  "owner": { "name": "Adrian Skobiej" },
+  "owner": {
+    "name": "Adrian Skobiej"
+  },
   "plugins": [
     {
       "name": "knowledge-os",
       "source": "./",
-      "description": "OKF-compatible company knowledge base: Markdown + offline HTML viewer, scale-ready index with facets & search-by-meaning, /kb-* commands, built-in agent procedures (onboarding, dedup, capture). Tool-agnostic (Claude Code, Codex, Antigravity)."
+      "description": "OKF-compatible company knowledge base: Markdown + offline HTML viewer, scale-ready index with facets & search-by-meaning, /kb-* commands, built-in agent procedures (onboarding, dedup, capture). Per-department editions from one master base. Tool-agnostic (Claude Code, Codex, Antigravity)."
     }
   ]
 }
