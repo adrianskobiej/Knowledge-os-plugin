@@ -14,6 +14,30 @@
     "product",
     "operations"
   ],
+  "access": {
+    "default": "owners",
+    "paths": {
+      "CONTEXT.md": "company",
+      "now.md": "company",
+      "concepts/": "company",
+      "skills/": "company",
+      "_templates/": "company",
+      "projects/": "company",
+      "people/": "company",
+      "*-personal.md": "owners",
+      "departments/": "department",
+      "tasks/": "department",
+      "meetings/": "owners",
+      "journal/": "owners",
+      "wiki/": "owners"
+    },
+    "writable": [
+      "departments/<dept>/",
+      "tasks/<dept>/",
+      "journal/",
+      "wiki/log/"
+    ]
+  },
   "conventions": {
     "frontmatterRequired": [
       "title",
@@ -27,5 +51,5 @@
       "stable"
     ]
   },
-  "version": "0.31.1"
+  "version": "0.32.0"
 }

@@ -88,10 +88,27 @@ Tool-agnostic auto-reindex (replaces the Claude-only hook): in a base, run once
 
 ## Repository layout
 
-- `template/` — knowledge-base scaffold (`AGENTS.md`, `scripts/reindex.mjs`, `viewer.html`, whitelist `.gitignore`, empty content dirs, `_templates/`, `wiki/` for decisions + per-person logs).
+- `template/` — knowledge-base scaffold (`AGENTS.md`, `scripts/` engine, `viewer.html`, whitelist `.gitignore`, empty content dirs, `_templates/`, `wiki/` for decisions + per-person logs, `_ci/` automation templates).
 - `commands/` — slash-command sources (one source of truth `install.mjs` adapts per tool).
 - `install.mjs` — cross-platform installer (command adapters + global awareness).
 - `.claude-plugin/` + `hooks/` — Claude Code plugin + PostToolUse auto-reindex.
+
+## Access: one master, one edition per department
+
+Git access is per-**repository** — there is no folder-level secrecy inside a shared base, and
+anyone who can clone one reads all of it. So a partial copy is published rather than pretended:
+
+```bash
+node scripts/kb-build.mjs --dept sales --out ../kb-sales
+```
+
+The edition carries articles marked `visibility: company` plus that one department's own, and
+nothing else. It is its own repo, so the team physically cannot hold what it was not given, while
+the master stays one tree and the `[[link]]` graph is never split. `kb-collect.mjs` carries the
+team's own writing back, behind three fail-closed gates (path ownership, no self-promotion,
+secret scan). Anything unclassified defaults to owners-only — a forgotten field must never widen
+reach. The subject of access control is a **person**: an agent reads whatever clone sits on the
+machine it was started on, so there is no separate agent permission to configure.
 
 ## Security
 

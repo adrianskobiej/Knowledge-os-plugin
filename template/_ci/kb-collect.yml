@@ -1,0 +1,43 @@
+# Carry a team's own writing back into the master. Copy to .github/workflows/ in an EDITION repo.
+# Placeholders to fill: OWNER, the master repo name, and DEPT.
+name: kb-collect
+
+on:
+  push:
+    branches: [main]
+
+env:
+  DEPT: sales                            # ← this edition's department
+
+jobs:
+  collect:
+    # Loop breaker: kb-build commits as kb-bot; collecting our own publish would ping-pong forever.
+    if: github.event.head_commit.author.username != 'kb-bot'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: edition }
+
+      - uses: actions/checkout@v4
+        with:
+          repository: OWNER/knowledge-base            # ← the master repo
+          token: ${{ secrets.KB_BOT_TOKEN }}
+          path: master
+          fetch-depth: 0
+
+      # Exits 1 on any gate breach (path ownership / self-promotion / secrets) and imports
+      # NOTHING — a red run here is the point, not a problem to work around.
+      - name: Collect into the master
+        working-directory: master
+        run: node scripts/kb-collect.mjs --dept "$DEPT" --from ../edition
+
+      - name: Push
+        working-directory: master
+        run: |
+          git config user.name  kb-bot
+          git config user.email kb-bot@users.noreply.github.com
+          git add -A
+          git diff --cached --quiet && echo "nothing collected" && exit 0
+          git commit -m "kb-collect: $DEPT edition"
+          git pull --rebase --autostash
+          git push
