@@ -11,8 +11,10 @@ env:
 
 jobs:
   collect:
-    # Loop breaker: kb-build commits as kb-bot; collecting our own publish would ping-pong forever.
-    if: github.event.head_commit.author.username != 'kb-bot'
+    # Loop breaker: matched on the git AUTHOR NAME the other workflow sets, not on author.username —
+    # username is GitHub's account lookup from the commit email and is EMPTY when no such account
+    # exists, which would silently disable this guard and ping-pong the two repos forever.
+    if: github.event.head_commit.author.name != 'kb-bot'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
