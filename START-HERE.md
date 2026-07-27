@@ -36,5 +36,6 @@ You just answer simple questions (e.g. "what's your name?", "does anyone at the 
 - **Want to look something up?** → `/kb-query your question`
 - **Have a note/document to save?** → paste it and ask to add it (`/kb-ingest`)
 - **Want the latest knowledge from the team?** → `/kb-sync`
+- **Need a teammate to see only their department's knowledge?** → `/kb-edition`
 
 Full project description: see `README.md`.
