@@ -1,2 +1,8 @@
 .DS_Store
 node_modules/
+
+# Agent mention cards seeded per-directory by tooling. They carry a company's private
+# agent roster, so they must never reach a public repo — .git/info/exclude is local to
+# one clone and does not travel, which is why this lives in the tracked .gitignore.
+/_mentions/
+/mentions/
