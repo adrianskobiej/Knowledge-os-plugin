@@ -39,6 +39,15 @@ test('does NOT flag a narrower compound as a misspelling of the shorter term', (
   assert.ok(!areVariants('cofounder', 'founder'));
 });
 
+test('does NOT flag a general term as a misspelling of its own specialisation', () => {
+  // `audyt` covers compliance, architecture and website audits; `audyt-ai` is one product.
+  // Normalized they are one inflection apart — only the raw hyphen tells them apart.
+  assert.ok(!areVariants('audyt', 'audytai', 'audyt', 'audyt-ai'));
+  assert.ok(!areVariants('lead', 'leadmagnet', 'lead', 'lead-magnet'));
+  // …but a plural of a hyphenated term is still a plural.
+  assert.ok(areVariants('moneymodel', 'moneymodels', 'money-model', 'money-models'));
+});
+
 test('does NOT flag short tags, where a single edit links unrelated words', () => {
   assert.ok(!areVariants('www', 'vsl'));
   assert.ok(!areVariants('dev', 'des'));

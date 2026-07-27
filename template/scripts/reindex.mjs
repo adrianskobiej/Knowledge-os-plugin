@@ -30,6 +30,11 @@ const STATS = process.argv.includes('--stats');
 const REQUIRED = ['title', 'slug', 'category', 'summary', 'status'];
 const AUTHORITIES = ['primary', 'secondary', 'derived'];
 const CONFIDENCES = ['verified', 'inferred', 'unverified'];  // T21: human-verified vs AI-inferred (≈ Graphify EXTRACTED/INFERRED)
+// Typed relations. A closed, deliberately tiny set: `[[links]]` already carry association,
+// so a new relation only earns its place if something can ACT on it. `superseded_by` is what
+// makes retraction possible (see kb-forget.mjs) — without it, deleting an article just
+// orphans every reference to it.
+const RELATION_FIELDS = ['supersedes', 'superseded_by', 'depends_on'];
 // Reach of an article when the base is published as per-department editions (kb-build.mjs).
 // `private` is the assistants/ word for the same reach as `owners` — accepted as an alias.
 // Deliberately inlined rather than imported from kb-access.mjs: /kb-upgrade may refresh
@@ -231,6 +236,9 @@ for (const file of files) {
     authority: meta.authority || '',
     confidence: meta.confidence || '',   // T21: verified | inferred | unverified (optional)
     author: meta.author || '',
+    // Typed relations (flat keys — one slug or a [list]).
+    ...Object.fromEntries(RELATION_FIELDS.map(f =>
+      [f, Array.isArray(meta[f]) ? meta[f] : (meta[f] ? [meta[f]] : [])])),
     // Reach when published as department editions. Empty = not stated in frontmatter;
     // kb-build.mjs then falls back to the path defaults in knowledge.config.json → access.
     visibility,
@@ -287,6 +295,13 @@ for (const a of articles)
     if (!slugs.has(t)) warnings.push(`⚠ Dead link [[${t}]] in: ${a.path}`);
     else backlinks[t].push(a.slug);
   }
+
+// A relation pointing at nothing is worse than a dead [[link]]: tooling ACTS on these, so a
+// stale `superseded_by` would send a reader to an article that no longer exists.
+for (const a of articles)
+  for (const f of RELATION_FIELDS)
+    for (const t of a[f])
+      if (!slugs.has(t)) warnings.push(`⚠ Unknown ${f} target "${t}" in: ${a.path}`);
 
 // Orphans (nobody links to it and it links to nobody)
 for (const a of articles)
@@ -394,7 +409,23 @@ for (const a of active) {
     edgeSet.add(a.slug < t ? `${a.slug}|${t}` : `${t}|${a.slug}`);
   }
 }
-const edgeList = [...edgeSet].map(k => { const [source, target] = k.split('|'); return { source, target, relation: 'links_to' }; });
+const linkEdges = [...edgeSet].map(k => { const [source, target] = k.split('|'); return { source, target, relation: 'links_to' }; });
+
+// Typed relations — a `[[link]]` only says "these are related"; these say HOW. That is what
+// makes "what breaks if I change this?" answerable: a `depends_on` is a real dependency, a
+// bare mention is not. Directional and additive — the untyped edge stays where both exist.
+const typedEdges = [];
+for (const a of active) {
+  for (const field of RELATION_FIELDS) {
+    for (const t of a[field]) {
+      if (!activeSlugSet.has(t) || t === a.slug) continue;
+      adj.get(a.slug).add(t); adj.get(t).add(a.slug);      // typed relations are structure too
+      edgeSet.add(a.slug < t ? `${a.slug}|${t}` : `${t}|${a.slug}`);
+      typedEdges.push({ source: a.slug, target: t, relation: field });
+    }
+  }
+}
+const edgeList = [...linkEdges, ...typedEdges];
 const degreeOf = s => (adj.get(s)?.size || 0);
 
 // Community detection — label propagation on the hub-excluded subgraph. A few

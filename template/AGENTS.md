@@ -282,6 +282,16 @@ first. This keeps it de-duplicated and trustworthy even with many contributors.
 - **`summary`** is the retrieval surface — write it with real keywords (the agent sees only this in
   the index). **`tags`** for facets; **`entities: [client, product, person]`** for cross-cutting
   lookup (a client/product referenced from many articles). Both feed `INDEX-facets.md`.
+- **Typed relations for facts, `[[links]]` for association.** Three optional flat fields say
+  what a bare link cannot: `supersedes: [slug]`, `superseded_by: slug`, `depends_on: [a, b]`.
+  Add one only when the relationship is something a tool or a reader will ACT on — "what breaks
+  if I change this?" is answerable from `depends_on`, not from a mention. `--lint` flags a
+  relation pointing at nothing, because a stale one sends a reader to an article that is gone.
+- **Retract, never just delete** (`/kb-forget`). Removing an article with `rm` leaves every
+  `[[reference]]` dangling and the lint fills with dead links nobody fixes.
+  `node scripts/kb-forget.mjs <slug> [--replaced-by <slug>]` redirects or defuses every
+  reference first, records `supersedes:` on the successor, and only then removes the file.
+  Dry run by default. Git keeps the history — the base needs no tombstone.
 - **One idea, one tag name.** A facet only works if a concept is spelled one way — `website` and
   `websites` are two facets, and a search for one misses the other. Before adding a tag, check what
   the base already uses (`INDEX-facets.md`); reuse it rather than coining a near-synonym, and don't

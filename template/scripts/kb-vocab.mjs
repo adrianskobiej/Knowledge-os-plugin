@@ -68,13 +68,26 @@ const isNarrowerCompound = (a, b) => {
   return l !== s && l.endsWith(s) && !l.startsWith(s);
 };
 
+// `audyt` → `audyt-ai` adds a whole SEGMENT, which narrows the subject to a specific thing;
+// `website` → `websites` adds letters to the same word, which is inflection. The hyphen is the
+// only thing that separates the two cases and normalization strips it, so the RAW spellings
+// decide. Without this, a general term looks like a misspelling of its own specialisation.
+const addsSegment = (ra, rb) => {
+  if (!ra || !rb) return false;
+  const [s, l] = ra.length <= rb.length ? [ra, rb] : [rb, ra];
+  const ss = String(s).split('-'), ls = String(l).split('-');
+  return ls.length > ss.length && ss.every((seg, i) => seg === ls[i]);
+};
+
 // A pair is worth flagging when it is almost certainly one idea typed twice.
 // Short tags are excluded: at 3 characters, an edit distance of 1 links unrelated words
 // (`www`/`vsl`, `dev`/`des`), and a false merge suggestion is worse than a missed one.
-export function areVariants(a, b) {
+// `rawA`/`rawB` are the original spellings; pass them when available, since some distinctions
+// only survive in the unnormalized form.
+export function areVariants(a, b, rawA, rawB) {
   if (a === b) return false;
   if (Math.min(a.length, b.length) < 4) return false;
-  if (isNumberedSeries(a, b) || isNarrowerCompound(a, b)) return false;
+  if (isNumberedSeries(a, b) || isNarrowerCompound(a, b) || addsSegment(rawA, rawB)) return false;
   if (isInflection(a, b)) return true;
   return levenshtein(a, b) <= (Math.min(a.length, b.length) >= 8 ? 2 : 1);
 }
@@ -139,7 +152,8 @@ export function analyse(counts) {
     if (seen.has(norms[i])) continue;
     const group = [norms[i]];
     for (let j = i + 1; j < norms.length; j++)
-      if (!seen.has(norms[j]) && areVariants(norms[i], norms[j])) { group.push(norms[j]); seen.add(norms[j]); }
+      if (!seen.has(norms[j]) && areVariants(norms[i], norms[j], byNorm.get(norms[i])[0], byNorm.get(norms[j])[0]))
+        { group.push(norms[j]); seen.add(norms[j]); }
     if (group.length > 1) {
       seen.add(norms[i]);
       clusters.push(group.flatMap(n => byNorm.get(n))

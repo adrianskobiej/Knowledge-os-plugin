@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.34.0
+
+- **`/kb-forget` — retract, don't just delete.** Removing an article with `rm` was always the easy
+  half: the base is a link graph, so every `[[reference]]` was left dangling, reindex reported each
+  one as a dead link, and a lint nobody can read is a lint nobody reads. `scripts/kb-forget.mjs`
+  repairs the references first — redirecting them to a replacement (keeping the original wording)
+  or defusing them to plain text marked `(retracted)` — then removes the file. Dry run by default.
+- **Typed relations.** Three optional flat frontmatter fields carry what a bare link cannot:
+  `supersedes`, `superseded_by`, `depends_on`. They become their own edge kind in `graph.json`, so
+  "what breaks if I change this?" is answerable from real dependencies rather than from mentions.
+  `/kb-links` shows them separately; `--lint` flags one pointing at nothing.
+- **The set is deliberately tiny and closed.** `[[links]]` already carry association, so a new
+  relation only earns a place if something can act on it. `superseded_by` earns it by making
+  retraction possible at all.
+- **Code fences are examples, not references.** A slug inside a fenced block is left untouched
+  when repairing, so documentation showing the syntax does not get rewritten.
+- **`/kb-vocab`: a general term is no longer read as a misspelling of its own specialisation.**
+  `audyt` (compliance, architecture, website audits) and `audyt-ai` (one product) sit one
+  inflection apart once normalized — only the raw hyphen separates them. Adding a whole segment
+  narrows a subject; adding letters to the same word is a plural.
+
 ## 0.33.0
 
 - **`/kb-vocab` — one idea, one name.** Facets only work when a concept is spelled one way. Left

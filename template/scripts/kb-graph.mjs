@@ -94,6 +94,12 @@ if (cmd === 'links') {
   if (a) {
     console.log(`\n← Referenced by (${a.backlinks.length}) — these break/need review if it changes:`);
     for (const s of a.backlinks) console.log(`  • ${line(s)}`);
+    // Typed relations first: a dependency is a different fact from a mention, and this is
+    // the question people actually ask before changing something.
+    for (const [field, arrow] of [['depends_on', 'depends on'], ['supersedes', 'supersedes'], ['superseded_by', 'superseded by']]) {
+      const v = a[field] || [];
+      if (v.length) console.log(`\n⇒ ${arrow} (${v.length}): ${v.map(s => label(s)).join(', ')}`);
+    }
     console.log(`\n→ Links out to (${a.links.length}):`);
     for (const s of a.links) console.log(`  • ${nodes.has(s) ? line(s) : s + '  (⚠ dead link)'}`);
   } else {

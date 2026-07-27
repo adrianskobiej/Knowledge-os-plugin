@@ -8,6 +8,8 @@ designed to be **tool-agnostic** — usable from Claude Code, Codex, Antigravity
 - `template/` — the knowledge-base scaffold stamped into a new base. Carries its own
   `AGENTS.md`, the `scripts/` engine, `viewer.html`, empty content dirs + `_templates/`,
   and `_ci/` (inert automation templates — never wired up by an install).
+- `template/scripts/kb-forget.mjs` — retraction: repairs every reference to an article
+  before removing it, so a deletion cannot leave the graph full of dead links.
 - `template/scripts/kb-vocab.mjs` — tag/entity hygiene: finds terms that name one idea twice
   and proposes merges. Read-only; it never rewrites an article.
 - `template/scripts/kb-access.mjs` · `kb-build.mjs` · `kb-collect.mjs` — the access layer:
