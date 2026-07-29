@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.39.0
+
+- **Project channels find their own folders.** Writing `folder:` into seventeen articles is work
+  nobody should do when the answer is already on the machine: Claude Code records every directory
+  it has worked in. The runtime reads those directory keys — nothing else in that config is any of
+  its business — and binds a project to a folder when the names match exactly. On a real base that
+  filled six rooms with no configuration at all: `~/Klishio` → Klishio, `~/Strona AI EDU` → AI EDU,
+  `~/Strona nanas.pro` → nanas.pro, `~/adrianskobiej.pl`, `~/SellnRise`, `~/knowledge-os`.
+- **Exact matches only, on purpose.** Fuzzy matching would have paired "Nanas prompter" with
+  nanas-cleaner or nanas-pro, and pointing an agent at the wrong repository is worse than not
+  offering the room at all. A leading or trailing `strona` / `app` / `website` is dropped first,
+  because that is how a person names a folder, not part of the project's name. An explicit
+  `folder:` still wins, and two candidates for one project bind nothing.
+- **`+ New channel` is a picker, not a path prompt.** The folders Claude Code knows are listed with
+  one click each, the ones already used are marked rather than hidden — seeing that a project is
+  covered is as useful as seeing that it is not — and typing a path stays as the fallback.
+
 ## 0.38.0
 
 - **`acceptEdits` alone was too tight to be useful.** It lets an agent write files and stops every

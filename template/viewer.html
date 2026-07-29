@@ -562,6 +562,35 @@
   .chat-off code{ background:var(--chip); border-radius:5px; padding:2px 6px; }
   .chat-head .chip.cwd{ font-size:11px; max-width:340px; overflow:hidden; text-overflow:ellipsis;
                         white-space:nowrap; }
+  /* folder picker — the folders Claude Code already knows, one click each */
+  .pick-back{ position:fixed; inset:0; z-index:90; background:rgba(15,18,25,.5);
+              display:grid; place-items:center; padding:24px; }
+  .pick{ width:min(560px,100%); max-height:80vh; overflow:auto; background:var(--panel);
+         border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow-md); padding:22px; }
+  .pick h3{ margin:0 0 6px; font-size:16px; }
+  .pick p{ margin:0 0 14px; color:var(--muted); font-size:13px; }
+  .pick-list{ display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+  .pk{ display:flex; flex-direction:column; gap:2px; text-align:left; border:1px solid var(--line);
+       background:transparent; color:var(--ink); border-radius:10px; padding:9px 12px;
+       font:inherit; cursor:pointer; }
+  .pk:hover{ border-color:var(--accent); background:var(--accent-soft); }
+  .pk b{ font-size:13.5px; font-weight:600; }
+  .pk span{ font-size:11.5px; color:var(--muted); }
+  .pick-none{ font-style:italic; }
+  .pick-own{ display:flex; gap:8px; }
+  .pick-own input{ flex:1; min-width:0; border:1px solid var(--line); border-radius:10px;
+                   background:var(--bg); color:var(--ink); padding:9px 12px; font:inherit; font-size:13px; }
+  .pick-own input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .pick-own button{ border:none; background:var(--accent); color:#fff; border-radius:10px;
+                    padding:9px 16px; font:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+  .pick-x{ margin-top:12px; border:none; background:transparent; color:var(--muted);
+           font:inherit; font-size:12.5px; cursor:pointer; padding:4px 0; }
+  .pick-x:hover{ color:var(--ink); }
+  :root[data-pixel="on"] .pick, :root[data-pixel="on"] .pk, :root[data-pixel="on"] .pick-own input,
+  :root[data-pixel="on"] .pick-own button{ border-radius:0; }
+  :root[data-pixel="on"] .pick{ box-shadow:6px 6px 0 var(--pix-sh); }
+  :root[data-pixel="on"] .pick h3{ font-family:var(--pixdisp); font-size:11px; line-height:2; }
+
   .chat-status{ border-top:1px solid var(--line); padding:9px 12px; display:flex; flex-wrap:wrap;
                 gap:5px; font-size:10.5px; color:var(--muted); }
   .chat-status span{ background:var(--chip); border-radius:20px; padding:2px 8px; }
@@ -2398,18 +2427,52 @@
     return false;
   }
 
+  // Making a room should not require remembering a path. Claude Code already knows every folder
+  // you have worked in, so the picker offers those first and keeps typing one out as the fallback.
   async function chatNewChannelPrompt() {
-    const name = prompt('Channel name (e.g. the project you want a room for):');
-    if (!name) return;
-    const path = prompt('Folder the agents should work in.\nLeave empty to work in the base.\n\n'
-      + 'Anything you say in this channel can edit files there — the knowledge base comes along either way.', '~/');
-    if (path === null) return;
-    try {
-      const chan = await chatCreateChannel(name, path.trim(), '');
-      location.hash = 'chat:' + encodeURIComponent(chan.id);
-      showChat(chan.id);
-      toast('Channel "' + chan.name + '" → ' + chan.path);
-    } catch (err) { toast(String(err.message || err)); }
+    let found = [];
+    try { found = await (await fetch(CHAT_API('/api/folders'))).json(); } catch { /* offer typing */ }
+    const free = found.filter(f => !f.used);
+    const c = document.getElementById('content');
+    const panel = document.createElement('div');
+    panel.className = 'pick-back';
+    panel.innerHTML = '<div class="pick"><h3>New channel</h3>'
+      + '<p>Agents in this room work in the folder you choose — editing real files — with the '
+      + 'knowledge base attached either way.</p>'
+      + (free.length
+          ? '<div class="pick-list">' + free.map(f =>
+              '<button type="button" class="pk" data-path="' + escapeHtml(f.path) + '" data-name="'
+              + escapeHtml(f.name) + '"><b>' + escapeHtml(f.name) + '</b><span>'
+              + escapeHtml(f.path.replace(/^\/Users\/[^/]+/, '~')) + '</span></button>').join('')
+            + '</div>'
+          : '<p class="pick-none">Claude Code has no other folders on record yet — type one below.</p>')
+      + '<div class="pick-own"><input id="pick-path" placeholder="…or a folder path, e.g. ~/code/thing">'
+      + '<button type="button" id="pick-go">Add</button></div>'
+      + '<button type="button" class="pick-x" id="pick-close">Cancel</button></div>';
+    c.appendChild(panel);
+
+    const close = () => panel.remove();
+    panel.onclick = (e) => { if (e.target === panel) close(); };
+    document.getElementById('pick-close').onclick = close;
+    const make = async (name, path) => {
+      try {
+        const chan = await chatCreateChannel(name, path, '');
+        close();
+        location.hash = 'chat:' + encodeURIComponent(chan.id);
+        showChat(chan.id).catch(chatViewError);
+        toast('Channel "' + chan.name + '" → ' + chan.path);
+      } catch (err) { toast(String(err.message || err)); }
+    };
+    panel.querySelectorAll('.pk').forEach(b => {
+      b.onclick = () => make(b.dataset.name, b.dataset.path);
+    });
+    const own = document.getElementById('pick-path');
+    const go = () => {
+      const v = own.value.trim();
+      if (v) make(v.split('/').filter(Boolean).pop() || v, v);
+    };
+    document.getElementById('pick-go').onclick = go;
+    own.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } };
   }
 
   function route() {

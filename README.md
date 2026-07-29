@@ -78,8 +78,14 @@ One resumable session per channel, transcripts kept in `.kb-chat/`. Channels com
 |---|---|---|
 | **Base** | always there | the base |
 | one per assistant | each card in `assistants/` | the base |
-| one per project | a `projects/` article with `folder: ~/code/thing` | that folder, base attached |
+| one per project | a `projects/` article — its folder is found, or set with `folder: ~/code/thing` | that folder, base attached |
 | yours | `+ New channel` in the viewer | any folder you point it at |
+
+You rarely need to write `folder:`. Claude Code records every directory it has worked in, and the
+runtime binds a project to one when the names match exactly (a leading or trailing `strona` / `app`
+/ `website` is ignored — that is how folders get named, not projects). Only exact matches bind:
+aiming an agent at the wrong repository is worse than leaving the room unmade. `+ New channel`
+lists the rest for one-click adding.
 
 In a project channel the agent works on the real files *and* keeps the base as a second working
 directory — same assistant, same context, wherever it is standing. Type `@` in any room to summon

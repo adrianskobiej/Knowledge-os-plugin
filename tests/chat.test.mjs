@@ -11,7 +11,7 @@ import { spawn } from 'node:child_process';
 import { request } from 'node:http';
 import { mkdtempSync, cpSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { join, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -152,6 +152,19 @@ test('a hand-made channel can be, and takes its transcript with it', async () =>
   const del = await fetch(`${BASE}/api/channels?id=${encodeURIComponent(made.id)}&t=${token}`, { method: 'DELETE' });
   assert.equal(del.status, 200);
   assert.ok(!(await channels()).some((c) => c.id === made.id));
+});
+
+test('offers the folders it knows about, marking the ones already taken', async () => {
+  const r = await fetch(`${BASE}/api/folders?t=${token}`);
+  assert.equal(r.status, 200);
+  const found = await r.json();
+  assert.ok(Array.isArray(found));
+  for (const f of found) {
+    assert.ok(f.path && f.name, 'a folder needs a path and a name');
+    assert.equal(typeof f.used, 'boolean');
+    assert.ok(!f.path.includes(`${sep}.claude${sep}worktrees${sep}`), 'worktrees are not projects');
+    assert.ok(!f.path.startsWith(base + sep) && f.path !== base, 'the base is already a channel');
+  }
 });
 
 // ── billing ─────────────────────────────────────────────────────────────────

@@ -141,6 +141,35 @@ function expandPath(p) {
   return resolve(s.startsWith('~') ? join(homedir(), s.slice(1)) : s);
 }
 
+// ── where the projects actually live ────────────────────────────────────────
+// A `folder:` in an article is the explicit binding, but nobody wants to type seventeen of them,
+// and the answer is already on the machine: Claude Code records every directory it has worked in.
+// Only the directory keys are read out of its config — nothing else in that file is any of our
+// business — and only an exact name match binds a folder to a project. Fuzzy matching is refused
+// on purpose: pointing an agent at the wrong repository is worse than not offering the room.
+const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .toLowerCase().replace(/[^a-z0-9]+/g, '');
+// "Strona nanas.pro" and "Doktor z Gryfic - Website" are the same project as their article; the
+// noise word is how a person names a folder, not part of the name.
+const bareName = (s) => String(s || '')
+  .replace(/^(strona|app|website|www)[\s-]+/i, '').replace(/[\s-]+(app|website|www)$/i, '');
+
+let discoveredCache = null;
+function discoveredFolders() {
+  if (discoveredCache) return discoveredCache;
+  let paths = [];
+  try {
+    const cfg = JSON.parse(readFileSync(join(homedir(), '.claude.json'), 'utf8'));
+    paths = Object.keys(cfg.projects || {});
+  } catch { /* no Claude Code history — the picker just starts empty */ }
+  discoveredCache = paths.filter((d) => {
+    if (d === homedir() || d.includes(`${sep}.claude${sep}worktrees${sep}`)) return false;
+    if (d === ROOT || d.startsWith(ROOT + sep)) return false;      // the base is already a channel
+    try { return statSync(d).isDirectory(); } catch { return false; }
+  }).sort();
+  return discoveredCache;
+}
+
 function loadStoredChannels() {
   try {
     const list = JSON.parse(readFileSync(CHANNELS_FILE, 'utf8'));
@@ -164,11 +193,19 @@ function listChannels() {
                name: meta.name || (meta.title || agent).split(/\s+[—–-]\s+/)[0],
                desc: meta.position || meta.summary || '' });
   }
+  const found = discoveredFolders();
   for (const { meta } of zoneCards('projects', /.+\.md$/)) {
-    const folder = expandPath(meta.folder);
-    if (!folder || !existsSync(folder)) continue;   // a project without a folder is an article, not a room
+    let folder = expandPath(meta.folder);
+    let via = 'folder';
+    if (!folder || !existsSync(folder)) {
+      const keys = [norm(meta.slug), norm(meta.title)].filter(Boolean);
+      const hits = found.filter((d) => keys.includes(norm(bareName(d.split(sep).pop()))));
+      if (hits.length !== 1) continue;              // no match, or more than one — say nothing
+      folder = hits[0];
+      via = 'claude-code';
+    }
     out.push({ id: 'project:' + meta.slug, kind: 'project', agent: meta.agent || '',
-               path: folder, name: meta.title || meta.slug, desc: folder });
+               path: folder, name: meta.title || meta.slug, desc: folder, via });
   }
   const seen = new Set(out.map((c) => c.id));
   for (const c of storedChannels) {
@@ -406,6 +443,16 @@ const server = createServer(async (req, res) => {
   if (url.pathname === '/api/channels' && req.method === 'GET') {
     return sendJson(res, 200, listChannels().map((c) => ({
       ...c, inBase: c.path === ROOT, updated: (threads[c.id] || {}).updated || null,
+    })));
+  }
+
+  if (url.pathname === '/api/folders' && req.method === 'GET') {
+    // The folders Claude Code has worked in, so making a channel is a click rather than a path
+    // typed from memory. Ones already bound to a channel are marked, not hidden — seeing that a
+    // project is covered is as useful as seeing that it is not.
+    const taken = new Set(listChannels().map((c) => c.path));
+    return sendJson(res, 200, discoveredFolders().map((d) => ({
+      path: d, name: d.split(sep).pop(), used: taken.has(d),
     })));
   }
 
