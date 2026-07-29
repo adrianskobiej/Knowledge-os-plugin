@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.40.0
+
+- **The channel list stopped being a wall.** A base with a real roster renders 26 assistants before
+  anything else, so projects and your own channels were pushed off screen and the list became
+  something to scroll rather than use. Groups collapse now, each showing its count, and Assistants
+  starts closed — the whole list fits on one screen again.
+- **A search box, because you know who you want.** Two letters filter every channel by name, agent
+  or folder; collapsed groups open themselves while filtering (a hidden match is the same as no
+  match), empty ones disappear, and Enter opens the first hit. Escape clears.
+- **What is open is remembered**, and the group holding the channel you are in is never closed on
+  you — arriving somewhere you cannot see is worse than a long list.
+
 ## 0.39.0
 
 - **Project channels find their own folders.** Writing `folder:` into seventeen articles is work
