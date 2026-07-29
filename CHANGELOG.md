@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.36.0
+
+- **Channels for your projects, not just for the base.** A channel is now a place to talk *and* a
+  folder to talk in. Give a `projects/` article a `folder:` and it becomes a room whose agents run
+  in that directory — reading the real code, editing the real files. Anything else gets a channel
+  you make yourself in the viewer (`+ New channel`), stored in `.kb-chat/channels.json`.
+- **The base comes along.** A turn outside the base is started with the base attached as a second
+  working directory, so an assistant in a project room is the same assistant it is at home: same
+  context, same conventions, same memory. Without that, a project channel would only be a second
+  terminal.
+- **Summon anyone, anywhere.** Typing `@` in any room opens the roster (arrows, Enter, Escape); the
+  message goes out as written and the base's own mention layer does the routing. A `@name` you type
+  always beats the channel's default — summoning someone into a room is the point of a room.
+- **Replies are signed by whoever answered.** In a project channel the room is the project, so
+  crediting every reply to the room would lose the one thing worth knowing. Who was addressed is
+  recorded next to what was said, and survives a reload.
+- **The runtime owns the channel list.** Only the server may decide which folder an agent runs in,
+  so the viewer renders what it is told rather than inventing it. A folder is checked when the
+  channel is made — exists, is a directory, is not the filesystem root — because a typo should fail
+  at that moment and not halfway through a turn. Derived channels cannot be deleted from a chat
+  window; the article behind them is the base's business.
+- **Pixel-art chat.** The 💬 view honours the pixel skin like every other: bitmap display font on
+  the chrome, 8-bit avatars with hard shadows, the log on the console's own grid, and a blinking
+  block after the last answer. Colour still carries the meaning; only the form goes blocky.
+
 ## 0.35.0
 
 - **`./kb chat` — the viewer talks back.** Reading the base was always only half the loop: the

@@ -72,9 +72,20 @@ terminal answers here too.
 ./kb chat            # reindex, start the runtime, open the viewer at the URL it prints
 ```
 
-One channel per card in `assistants/` (plus a general one), one resumable session per channel,
-transcripts kept in `.kb-chat/`. Without the runtime the viewer stays exactly what it was — offline
-and read-only.
+One resumable session per channel, transcripts kept in `.kb-chat/`. Channels come from three places:
+
+| Channel | Where it comes from | Agents run in |
+|---|---|---|
+| **Base** | always there | the base |
+| one per assistant | each card in `assistants/` | the base |
+| one per project | a `projects/` article with `folder: ~/code/thing` | that folder, base attached |
+| yours | `+ New channel` in the viewer | any folder you point it at |
+
+In a project channel the agent works on the real files *and* keeps the base as a second working
+directory — same assistant, same context, wherever it is standing. Type `@` in any room to summon
+someone from the roster; the message goes out as written and the base's mention layer routes it.
+
+Without the runtime the viewer stays exactly what it was — offline and read-only.
 
 Because the runtime executes an agent on your machine, it is deliberately narrow: loopback only, a
 fresh token per start (carried in the URL, and injected into the viewer's `kb-data.js` request so

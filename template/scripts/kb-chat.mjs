@@ -26,13 +26,15 @@
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { createReadStream, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const STATE_DIR = join(ROOT, '.kb-chat');
 const THREADS_FILE = join(STATE_DIR, 'threads.json');
+const CHANNELS_FILE = join(STATE_DIR, 'channels.json');
 
 // ── config ──────────────────────────────────────────────────────────────────
 function loadConfig() {
@@ -78,6 +80,81 @@ function thread(id) {
   return (threads[id] ??= { id, sessionId: null, messages: [], updated: null });
 }
 
+// ── channels ────────────────────────────────────────────────────────────────
+// A channel is a place to talk plus a folder to talk *in*. Three sources, one list:
+//   · the base itself and every card in assistants/  — derived, always present
+//   · every article in projects/ carrying a `folder:` — derived, so a project you already
+//     documented becomes a room without being registered twice
+//   · anything you add by hand in the viewer            — stored in .kb-chat/channels.json
+// The server owns this list because only the server may decide which folder an agent runs in.
+function frontmatter(file) {
+  let raw;
+  try { raw = readFileSync(file, 'utf8'); } catch { return null; }
+  if (!raw.startsWith('---')) return null;
+  const end = raw.indexOf('\n---', 3);
+  if (end === -1) return null;
+  const meta = {};
+  for (const line of raw.slice(3, end).split('\n')) {
+    const m = line.match(/^([a-zA-Z_]+):\s*(.*)$/);
+    if (m) meta[m[1]] = m[2].trim();
+  }
+  return meta;
+}
+
+function zoneCards(zone, pattern) {
+  const dir = join(ROOT, zone);
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => f.endsWith('.md') && pattern.test(f))
+    .map((f) => ({ file: join(dir, f), meta: frontmatter(join(dir, f)) }))
+    .filter((x) => x.meta && x.meta.slug);
+}
+
+// `~` is what a person types; the runtime has to resolve it before it can check anything.
+function expandPath(p) {
+  const s = String(p || '').trim();
+  if (!s) return '';
+  return resolve(s.startsWith('~') ? join(homedir(), s.slice(1)) : s);
+}
+
+function loadStoredChannels() {
+  try {
+    const list = JSON.parse(readFileSync(CHANNELS_FILE, 'utf8'));
+    return Array.isArray(list) ? list : [];
+  } catch { return []; }
+}
+let storedChannels = loadStoredChannels();
+function saveChannels() {
+  try {
+    if (!existsSync(STATE_DIR)) mkdirSync(STATE_DIR, { recursive: true });
+    writeFileSync(CHANNELS_FILE, JSON.stringify(storedChannels, null, 2));
+  } catch (err) { console.error('kb-chat: could not persist channels —', err.message); }
+}
+
+function listChannels() {
+  const out = [{ id: 'base', name: 'Base', kind: 'base', path: ROOT, agent: '',
+                 desc: 'The whole knowledge base' }];
+  for (const { meta } of zoneCards('assistants', /^assistant-.+\.md$/)) {
+    const agent = meta.slug.replace(/^assistant-/, '');
+    out.push({ id: 'agent:' + agent, kind: 'agent', agent, path: ROOT,
+               name: meta.name || (meta.title || agent).split(/\s+[—–-]\s+/)[0],
+               desc: meta.position || meta.summary || '' });
+  }
+  for (const { meta } of zoneCards('projects', /.+\.md$/)) {
+    const folder = expandPath(meta.folder);
+    if (!folder || !existsSync(folder)) continue;   // a project without a folder is an article, not a room
+    out.push({ id: 'project:' + meta.slug, kind: 'project', agent: meta.agent || '',
+               path: folder, name: meta.title || meta.slug, desc: folder });
+  }
+  const seen = new Set(out.map((c) => c.id));
+  for (const c of storedChannels) {
+    if (seen.has(c.id)) continue;                   // a hand-made channel never shadows a derived one
+    out.push({ ...c, kind: c.kind || 'custom' });
+  }
+  return out;
+}
+const channelById = (id) => listChannels().find((c) => c.id === id) || null;
+
 // ── runs ────────────────────────────────────────────────────────────────────
 /** runId -> { channel, proc, listeners:Set<res>, events:[], done:boolean } */
 const runs = new Map();
@@ -90,9 +167,13 @@ function emit(run, event) {
   for (const res of run.listeners) { try { res.write(frame); } catch { /* client vanished */ } }
 }
 
-function startRun({ channel, prompt, cwd }) {
+function startRun({ channel, prompt, cwd, agent }) {
   const t = thread(channel);
   const args = ['-p', '--output-format', 'stream-json', '--verbose'];
+  // In a project channel the agent works in the project, but the base is what it knows from —
+  // so the knowledge base travels along as a second working directory. This is the whole reason
+  // an assistant behaves the same in a project room as it does in the base.
+  if (cwd !== ROOT) args.push('--add-dir', ROOT);
   if (t.sessionId) args.push('--resume', t.sessionId);
   if (MODEL) args.push('--model', MODEL);
   if (PERMISSION_MODE) args.push('--permission-mode', PERMISSION_MODE);
@@ -154,7 +235,9 @@ function startRun({ channel, prompt, cwd }) {
   proc.on('close', (code) => {
     clearTimeout(timer);
     if (code !== 0 && !text) emit(run, { type: 'error', message: stderr.trim() || `claude exited with code ${code}` });
-    t.messages.push({ role: 'assistant', text, at: new Date().toISOString() });
+    // Who answered is recorded next to what was said — in a project room the channel is the
+    // project, so without this the transcript would credit every reply to the room.
+    t.messages.push({ role: 'assistant', agent: agent || '', text, at: new Date().toISOString() });
     t.updated = new Date().toISOString();
     saveThreads();
     run.done = true;
@@ -269,6 +352,10 @@ const server = createServer(async (req, res) => {
     if (busy.has(channel)) return sendJson(res, 409, { error: 'This channel is still answering the previous message.' });
     if (busy.size >= MAX_CONCURRENT) return sendJson(res, 429, { error: `Already running ${busy.size} turns — wait for one to finish.` });
 
+    const chan = channelById(channel);
+    if (!chan) return sendJson(res, 404, { error: 'No such channel.' });
+    if (!existsSync(chan.path)) return sendJson(res, 400, { error: `The channel folder is gone: ${chan.path}` });
+
     const t = thread(channel);
     t.messages.push({ role: 'user', text, at: new Date().toISOString() });
     t.updated = new Date().toISOString();
@@ -276,13 +363,58 @@ const server = createServer(async (req, res) => {
 
     // The agent name is prepended as a mention rather than passed as a flag: the base's own
     // mention layer is what decides which employee answers, so the routing rule stays in one
-    // place instead of being duplicated here.
-    const agent = String(body.agent || '').trim();
-    const prompt = agent ? `@${agent}\n\n${text}` : text;
+    // place instead of being duplicated here. A `@name` the person typed themselves wins over
+    // the channel's default — summoning someone into a room is the point.
+    const typed = text.match(/(?:^|\s)@([a-z0-9-]{2,})\b/i);
+    const fallback = typed ? '' : String(body.agent ?? chan.agent ?? '').trim();
+    const agent = typed ? typed[1].toLowerCase() : fallback;
+    const prompt = fallback ? `@${fallback}\n\n${text}` : text;
     let runId;
-    try { runId = startRun({ channel, prompt, cwd: ROOT }); }
+    try { runId = startRun({ channel, prompt, cwd: chan.path, agent }); }
     catch (err) { return sendJson(res, 500, { error: err.message }); }
-    return sendJson(res, 200, { runId });
+    return sendJson(res, 200, { runId, cwd: chan.path, agent });
+  }
+
+  if (url.pathname === '/api/channels' && req.method === 'GET') {
+    return sendJson(res, 200, listChannels().map((c) => ({
+      ...c, inBase: c.path === ROOT, updated: (threads[c.id] || {}).updated || null,
+    })));
+  }
+
+  if (url.pathname === '/api/channels' && req.method === 'POST') {
+    let body;
+    try { body = JSON.parse(await readBody(req) || '{}'); }
+    catch (err) { return sendJson(res, 400, { error: err.message }); }
+    const name = String(body.name || '').trim();
+    if (!name) return sendJson(res, 400, { error: 'A channel needs a name.' });
+    const path = body.path ? expandPath(body.path) : ROOT;
+    // The folder decides where an agent will run, so it is checked here rather than trusted:
+    // a typo should fail now, not halfway through a turn.
+    if (!existsSync(path)) return sendJson(res, 400, { error: `No such folder: ${path}` });
+    if (!statSync(path).isDirectory()) return sendJson(res, 400, { error: `Not a folder: ${path}` });
+    if (path === sep) return sendJson(res, 400, { error: 'The filesystem root is not a working directory.' });
+
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'channel';
+    let id = 'custom:' + slug;
+    for (let n = 2; channelById(id); n++) id = `custom:${slug}-${n}`;
+    const chan = { id, name, kind: 'custom', path, agent: String(body.agent || '').trim() };
+    storedChannels.push(chan);
+    saveChannels();
+    console.log(`  + channel "${name}" → ${path}`);
+    return sendJson(res, 200, chan);
+  }
+
+  if (url.pathname === '/api/channels' && req.method === 'DELETE') {
+    // Only hand-made channels can be removed — a derived one would simply come back on the next
+    // read, and deleting the article behind it is a decision for the base, not for a chat window.
+    const id = url.searchParams.get('id') || '';
+    const before = storedChannels.length;
+    storedChannels = storedChannels.filter((c) => c.id !== id);
+    if (storedChannels.length === before) return sendJson(res, 400, { error: 'That channel is derived from the base — remove it there.' });
+    saveChannels();
+    delete threads[id];
+    saveThreads();
+    return sendJson(res, 200, { ok: true });
   }
 
   if (url.pathname === '/api/events') {

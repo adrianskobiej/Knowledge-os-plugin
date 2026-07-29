@@ -109,3 +109,55 @@ test('streaming a run that does not exist is a 404, not a hanging socket', async
   assert.equal(r.status, 404);
   await r.text();
 });
+
+// ── channels ────────────────────────────────────────────────────────────────
+// A channel names a folder an agent will run in, so creating one is the closest thing this
+// runtime has to a privileged operation. Every rejection below is the reason it stays boring.
+
+const channels = () => fetch(`${BASE}/api/channels?t=${token}`).then((r) => r.json());
+const addChannel = (body) => fetch(`${BASE}/api/channels?t=${token}`, {
+  method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+});
+
+test('the base is always a channel, and it runs in the base', async () => {
+  const list = await channels();
+  const home = list.find((c) => c.id === 'base');
+  assert.ok(home, 'no base channel');
+  assert.equal(home.inBase, true);
+});
+
+test('creates a channel for a folder and remembers it', async () => {
+  const r = await addChannel({ name: 'Scratch Room', path: tmpdir() });
+  assert.equal(r.status, 200);
+  const made = await r.json();
+  assert.equal(made.kind, 'custom');
+  assert.ok((await channels()).some((c) => c.id === made.id && c.inBase === false));
+});
+
+test('refuses a folder that is not one', async () => {
+  assert.equal((await addChannel({ name: 'Ghost', path: join(tmpdir(), 'kb-chat-no-such-dir') })).status, 400);
+  assert.equal((await addChannel({ name: 'File', path: join(base, 'knowledge.config.json') })).status, 400);
+  assert.equal((await addChannel({ name: 'Root', path: '/' })).status, 400);
+  assert.equal((await addChannel({ path: tmpdir() })).status, 400);           // nameless
+});
+
+test('a derived channel cannot be deleted from the chat window', async () => {
+  const r = await fetch(`${BASE}/api/channels?id=base&t=${token}`, { method: 'DELETE' });
+  assert.equal(r.status, 400);
+  assert.ok((await channels()).some((c) => c.id === 'base'));
+});
+
+test('a hand-made channel can be, and takes its transcript with it', async () => {
+  const made = await (await addChannel({ name: 'Temporary', path: tmpdir() })).json();
+  const del = await fetch(`${BASE}/api/channels?id=${encodeURIComponent(made.id)}&t=${token}`, { method: 'DELETE' });
+  assert.equal(del.status, 200);
+  assert.ok(!(await channels()).some((c) => c.id === made.id));
+});
+
+test('a turn for a channel that does not exist never reaches the agent', async () => {
+  const r = await fetch(`${BASE}/api/send?t=${token}`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ channel: 'project:imaginary', text: 'do something' }),
+  });
+  assert.equal(r.status, 404);
+});
