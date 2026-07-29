@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.38.0
+
+- **`acceptEdits` alone was too tight to be useful.** It lets an agent write files and stops every
+  shell command — but a knowledge base *is* shell: `node scripts/reindex.mjs` rebuilds it, and an
+  assistant asked about the board reaches for `git log` or `grep` before it answers. Run against a
+  real base, the first question came back as a polite refusal: two ways to read the board, both
+  denied. A blocked agent does not fail loudly, it explains why it cannot help, which is worse than
+  either working or refusing outright. The default now grants the shell that cannot destroy
+  anything — reading, searching, git's read-only verbs, and the base's own scripts — and `git push`
+  / `rm` stay denied. Override the whole set with `allowedTools`.
+- **Answers read as paragraphs again.** Each turn of the agentic loop arrives as its own text
+  block; concatenated raw they ran into each other mid-sentence ("…dam znać.Sprawdzam tablicę.").
+  Blocks are now joined as paragraphs, in the stream and in the stored transcript.
+- **Avatars tell people apart.** A single initial collapses a real roster — Apelles, Argos, Ariadna
+  and Atlas all became "A". Two letters plus a hue derived from the whole name keeps 26 assistants
+  distinguishable at a glance, and stable across reloads.
+
 ## 0.37.0
 
 - **Chat turns run on your subscription, and that is now enforced rather than assumed.** `claude`

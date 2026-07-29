@@ -2104,7 +2104,21 @@
   }
   const chatState = { channel: 'base', channels: [], messages: [], busy: false, source: null };
 
-  function chatAvatar(name) { return escapeHtml(initials(name)); }
+  // A roster of single-word names collapses to one letter each — Apelles, Argos, Ariadna and Atlas
+  // all become "A". Two letters helps, but a real team still collides (Hefajstos, Helbert, Hermes,
+  // Hestia), so colour carries the rest: a hue derived from the whole name, stable across reloads.
+  function chatHue(name) {
+    let h = 0;
+    for (const ch of String(name || '')) h = (h * 31 + ch.charCodeAt(0)) % 360;
+    return h;
+  }
+  function chatAvatar(name) {
+    const s = String(name || '').trim();
+    const words = s.split(/[-_. ]+/).filter(Boolean);
+    const raw = words.length > 1 ? words.slice(0, 2).map(w => w[0]).join('') : s.slice(0, 2);
+    return '<span class="av" style="background:hsl(' + chatHue(s) + ' 58% 47%)">'
+      + escapeHtml(raw.toUpperCase()) + '</span>';
+  }
 
   async function chatLoadChannels() {
     try { chatState.channels = await (await fetch(CHAT_API('/api/channels'))).json(); }
@@ -2123,7 +2137,7 @@
       const cls = 'msg' + (m.role === 'user' ? ' me' : '') + (m.error ? ' err' : '');
       const tools = (m.tools || []).length
         ? '<div class="tools">' + m.tools.map(t => '<span>' + escapeHtml(t) + '</span>').join('') + '</div>' : '';
-      return '<div class="' + cls + '"><div class="av">' + chatAvatar(who) + '</div><div class="bd">'
+      return '<div class="' + cls + '">' + chatAvatar(who) + '<div class="bd">'
         + '<div class="who">' + escapeHtml(who) + '</div>'
         + '<div class="tx">' + (m.text ? chatMd(m.text) : '<i style="opacity:.5">…</i>') + tools + '</div>'
         + '</div></div>';
@@ -2219,7 +2233,9 @@
     chatState.source = src;
     src.onmessage = (e) => {
       let ev; try { ev = JSON.parse(e.data); } catch { return; }
-      if (ev.type === 'text') reply.text += ev.text;
+      // Each assistant event is its own turn of the agentic loop — a thought, a tool, a conclusion.
+      // Concatenated raw they run into each other mid-sentence, so they are joined as paragraphs.
+      if (ev.type === 'text') reply.text += (reply.text && !/\n$/.test(reply.text) ? '\n\n' : '') + ev.text;
       else if (ev.type === 'tool') { if (!reply.tools.includes(ev.name)) reply.tools.push(ev.name); }
       else if (ev.type === 'error') { reply.text += (reply.text ? '\n\n' : '') + ev.message; reply.error = true; }
       else if (ev.type === 'done') { src.close(); chatState.source = null; chatSetBusy(false); }
@@ -2267,7 +2283,7 @@
       if (!rows.length && g.kind !== 'custom') continue;
       side += '<h3>' + g.label + '</h3>';
       side += rows.map(ch => '<div class="chan" data-chan="' + escapeHtml(ch.id) + '" title="'
-          + escapeHtml(ch.path || '') + '"><span class="av">' + chatAvatar(ch.name) + '</span>'
+          + escapeHtml(ch.path || '') + '">' + chatAvatar(ch.name)
           + '<span class="nm"><b>' + escapeHtml(ch.name) + '</b></span>'
           + (ch.inBase === false ? '<span class="badge" title="Runs in its own folder">▲</span>' : '')
           + '</div>').join('');

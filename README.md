@@ -99,6 +99,11 @@ denied. Tune it under `chat` in `knowledge.config.json`:
           "disallowedTools": ["Bash(git push:*)"] }
 ```
 
+`acceptEdits` lets an agent write files but stops every shell command, which on its own is too tight
+for a base whose own workflow *is* shell. So the default also allows the shell that cannot destroy
+anything — reading, searching, git's read-only verbs, `node scripts/*` — while `git push` and `rm`
+stay denied. Replace the whole set with `allowedTools` if you want a different line.
+
 `"permissionMode": "bypassPermissions"` removes every gate. It works, and it is the setting to
 think twice about — anything you type into that window can then run unattended.
 

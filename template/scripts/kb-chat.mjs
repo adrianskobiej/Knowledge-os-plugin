@@ -56,7 +56,19 @@ const OPEN = argv.includes('--open');
 const TOKEN = argv.includes('--no-token') ? '' : randomBytes(16).toString('hex');
 const PERMISSION_MODE = String(chatCfg.permissionMode || 'acceptEdits');
 const MODEL = String(chatCfg.model || '');
-const ALLOWED_TOOLS = Array.isArray(chatCfg.allowedTools) ? chatCfg.allowedTools : [];
+// `acceptEdits` lets an agent write files but stops every shell command, and in a knowledge base
+// that is too tight to be useful: the base's own workflow is shell (`node scripts/reindex.mjs`),
+// and an assistant asked for the board will reach for `git log` or `grep` before it answers. A
+// blocked agent does not fail loudly — it explains why it cannot help, which is a worse outcome
+// than either a working one or a refused one. So the default grants the shell that cannot destroy
+// anything: reading, searching, the base's own scripts, and git's read-only verbs.
+const READ_ONLY_SHELL = [
+  'Bash(node scripts/*)', 'Bash(./kb:*)',
+  'Bash(git status:*)', 'Bash(git log:*)', 'Bash(git diff:*)', 'Bash(git show:*)', 'Bash(git branch:*)',
+  'Bash(ls:*)', 'Bash(cat:*)', 'Bash(head:*)', 'Bash(tail:*)', 'Bash(wc:*)',
+  'Bash(grep:*)', 'Bash(rg:*)', 'Bash(find:*)', 'Bash(sort:*)', 'Bash(uniq:*)',
+];
+const ALLOWED_TOOLS = Array.isArray(chatCfg.allowedTools) ? chatCfg.allowedTools : READ_ONLY_SHELL;
 const DISALLOWED_TOOLS = Array.isArray(chatCfg.disallowedTools)
   ? chatCfg.disallowedTools
   : ['Bash(git push:*)', 'Bash(rm:*)'];
@@ -222,7 +234,10 @@ function startRun({ channel, prompt, cwd, agent }) {
         emit(run, { type: 'session', sessionId: ev.session_id, model: ev.model });
       } else if (ev.type === 'assistant' && ev.message?.content) {
         for (const block of ev.message.content) {
-          if (block.type === 'text' && block.text) { text += block.text; emit(run, { type: 'text', text: block.text }); }
+          if (block.type === 'text' && block.text) {
+            text += (text && !/\n$/.test(text) ? '\n\n' : '') + block.text;   // stored the way it reads
+            emit(run, { type: 'text', text: block.text });
+          }
           else if (block.type === 'tool_use') emit(run, { type: 'tool', name: block.name });
         }
       } else if (ev.type === 'result') {
