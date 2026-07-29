@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.35.0
+
+- **`./kb chat` — the viewer talks back.** Reading the base was always only half the loop: the
+  other half is asking, and asking meant closing the viewer and opening a terminal.
+  `scripts/kb-chat.mjs` is a zero-dependency localhost runtime that serves the viewer and puts a
+  real Claude Code session behind it — running *in* the base, so every skill, assistant, connector
+  and instruction file that answers in the terminal answers here too. Nothing is re-implemented;
+  the runtime only carries text in and events out.
+- **A channel per assistant, a thread per conversation.** Channels are derived from the base
+  itself — one per card in `assistants/`, plus a general one — so a roster is never configured
+  twice. Each channel keeps its own Claude Code session id and resumes it on the next message,
+  which is what makes the second question able to refer to the first. Transcripts live in
+  `.kb-chat/` and survive a restart; "start fresh" forgets the session, not what was said.
+- **The agent is named by mention, not by flag.** A message in an assistant's channel is prefixed
+  with `@<name>` and handed over as-is, so whichever mention layer the base already has decides who
+  answers. The routing rule stays in one place instead of being copied into a server.
+- **A port on localhost is not private, and this one runs an agent.** Every start mints a fresh
+  token that travels in the URL; the viewer's own `<script src="kb-data.js">` is rewritten to carry
+  it, or the one file holding every article would be readable by any page that guessed the port.
+  Requests are refused when the token is missing, when `Sec-Fetch-Site` says another site is
+  asking, and when the `Host` header is not loopback — that last one is what stops DNS rebinding,
+  where the browser sends your token to an attacker's hostname pointed at 127.0.0.1.
+- **Safe by default, loud about it.** The default permission mode is `acceptEdits`: writing to the
+  base needs no ceremony, but shell commands still stop at the gate, and `git push` / `rm` are
+  denied outright. Both are `chat` settings in `knowledge.config.json` — including
+  `bypassPermissions`, which is documented rather than hidden, because a chat window that can do
+  anything should be a decision someone made on purpose.
+- **Offline stays the default.** Without the runtime the viewer is exactly what it was — a file you
+  open, read-only — and the Chat view explains how to start the runtime rather than pretending to
+  be live.
+
 ## 0.34.0
 
 - **`/kb-forget` — retract, don't just delete.** Removing an article with `rm` was always the easy

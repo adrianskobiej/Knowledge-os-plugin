@@ -37,6 +37,7 @@ Most tools optimize for one and bolt the other on. And whatever you pick is usua
 write    → add a .md article (or drop raw notes in raw/ and let the agent compile them)
 reindex  → node scripts/reindex.mjs        rebuilds INDEX.md + kb-data.js
 read     → open viewer.html (human)  ·  read INDEX.md (LLM)
+ask      → ./kb chat                       viewer + a live agent, on localhost (optional)
 deploy   → commit + push to your company repo
 ```
 
@@ -59,6 +60,35 @@ git init
 node scripts/reindex.mjs            # build INDEX.md + kb-data.js
 open viewer.html                    # browse it (macOS; use your OS's open command otherwise)
 ```
+
+### Chat with the base (optional)
+
+The viewer is a file: you open it, you read, you close it. `./kb chat` adds the other half — it
+serves the same viewer from `127.0.0.1` with a **💬 Chat** view, and puts a real Claude Code session
+behind it, running inside the base. Every skill, assistant and connector that answers in your
+terminal answers here too.
+
+```bash
+./kb chat            # reindex, start the runtime, open the viewer at the URL it prints
+```
+
+One channel per card in `assistants/` (plus a general one), one resumable session per channel,
+transcripts kept in `.kb-chat/`. Without the runtime the viewer stays exactly what it was — offline
+and read-only.
+
+Because the runtime executes an agent on your machine, it is deliberately narrow: loopback only, a
+fresh token per start (carried in the URL, and injected into the viewer's `kb-data.js` request so
+the file with every article in it is not readable by a page that merely guessed the port), and
+refusals for cross-site requests and non-loopback `Host` headers. The default permission mode is
+`acceptEdits` — writes to the base go through, shell commands do not, and `git push` / `rm` are
+denied. Tune it under `chat` in `knowledge.config.json`:
+
+```json
+"chat": { "port": 4319, "permissionMode": "acceptEdits", "disallowedTools": ["Bash(git push:*)"] }
+```
+
+`"permissionMode": "bypassPermissions"` removes every gate. It works, and it is the setting to
+think twice about — anything you type into that window can then run unattended.
 
 ### Use it from your AI agent
 

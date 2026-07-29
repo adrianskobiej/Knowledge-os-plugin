@@ -1,6 +1,7 @@
 #!/bin/sh
 # kb — reindex the base and open the offline viewer (zero deps).
 # Usage: ./kb            (rebuild + open viewer)
+#        ./kb chat       (rebuild + serve the viewer with the chat runtime)
 #        ./kb lint       (health-check only)
 #        ./kb stats      (stats only)
 # Tip: add an alias so you can run it from anywhere, e.g.
@@ -9,6 +10,12 @@ cd "$(dirname "$0")" || exit 1
 case "$1" in
   lint)  node scripts/reindex.mjs --lint ;;
   stats) node scripts/reindex.mjs --stats ;;
+  chat)
+    # The viewer has to be served, not opened as a file: a page on file:// cannot talk to a
+    # local server, and the token that protects the runtime travels in the URL.
+    node scripts/reindex.mjs >/dev/null 2>&1
+    exec node scripts/kb-chat.mjs --open
+    ;;
   *)
     node scripts/reindex.mjs >/dev/null 2>&1
     if   command -v open >/dev/null 2>&1; then open viewer.html

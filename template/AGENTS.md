@@ -11,7 +11,8 @@ A company knowledge base. The source of truth is `.md` files with frontmatter in
 `projects/`, `skills/`, `people/`, `meetings/`, `tasks/`, `concepts/`, `departments/`. From them we generate:
 - `INDEX.md` — root map (zones + counts + "Start here" + briefs). **Read it FIRST.**
 - `<zone>/INDEX.md` — per-zone listing (one line/article) for large-base navigation.
-- `kb-data.js` — data for `viewer.html` (the human-facing reader, offline).
+- `kb-data.js` — data for `viewer.html` (the human-facing reader, offline; `./kb chat` serves the
+  same viewer with a live chat runtime, `scripts/kb-chat.mjs`, and keeps transcripts in `.kb-chat/`).
 - `INSIGHTS.md` — the base's shape: god nodes (most-connected), surprising cross-zone links, suggested questions.
 - `graph.json` — the portable node/edge graph (degree + community per node); powers the graph commands.
 - `LESSONS.md` — work memory (from `/kb-reflect`): preferred sources, contested facts, known dead ends. **Read at session start.**
