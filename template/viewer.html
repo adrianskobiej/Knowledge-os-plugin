@@ -562,6 +562,12 @@
   .chat-off code{ background:var(--chip); border-radius:5px; padding:2px 6px; }
   .chat-head .chip.cwd{ font-size:11px; max-width:340px; overflow:hidden; text-overflow:ellipsis;
                         white-space:nowrap; }
+  .chat-status{ border-top:1px solid var(--line); padding:9px 12px; display:flex; flex-wrap:wrap;
+                gap:5px; font-size:10.5px; color:var(--muted); }
+  .chat-status span{ background:var(--chip); border-radius:20px; padding:2px 8px; }
+  .chat-status .warn{ color:var(--warn); }
+  @media (max-width:900px){ .chat-status{ display:none; } }
+  :root[data-pixel="on"] .chat-status span{ border-radius:0; font-family:var(--pixfont); }
   .chan-new{ width:100%; margin:6px 0 0; border:1px dashed var(--line); background:transparent;
              color:var(--muted); border-radius:9px; padding:8px; font:inherit; font-size:12.5px; cursor:pointer; }
   .chan-new:hover{ color:var(--accent); border-color:var(--accent); }
@@ -2268,7 +2274,8 @@
       if (g.kind === 'custom') side += '<button class="chan-new" id="chan-new">+ New channel</button>';
     }
     c.innerHTML = '<div class="chat">'
-      + '<div class="chat-side"><div class="chat-chan">' + side + '</div></div>'
+      + '<div class="chat-side"><div class="chat-chan">' + side + '</div>'
+      + '<div class="chat-status" id="chat-status"></div></div>'
       + '<div class="chat-main">'
       + '<div class="chat-head" id="chat-title"></div>'
       + '<div class="chat-log" id="chat-log"></div>'
@@ -2303,7 +2310,23 @@
     };
 
     chatOpen(channelId && chans.some(x => x.id === channelId) ? channelId : chans[0].id);
+    chatStatus();
     input.focus();
+  }
+
+  // Who pays and what the agent is allowed to do are the two facts a chat window should never
+  // make you guess — they decide what a careless sentence can cost.
+  async function chatStatus() {
+    const el = document.getElementById('chat-status');
+    if (!el) return;
+    try {
+      const s = await (await fetch(CHAT_API('/api/ping'))).json();
+      const pay = s.billing === 'api' ? 'metered API key' : 'your Claude subscription';
+      el.innerHTML = '<span title="Which account pays for a turn">' + escapeHtml(pay) + '</span>'
+        + '<span title="What an agent may do without asking">' + escapeHtml(s.permissionMode) + '</span>'
+        + (s.keyInEnv && s.billing !== 'api'
+            ? '<span class="warn" title="An API key is in the environment but is withheld from turns">key withheld</span>' : '');
+    } catch { el.textContent = ''; }
   }
 
   // ── summoning ─────────────────────────────────────────────────────────────

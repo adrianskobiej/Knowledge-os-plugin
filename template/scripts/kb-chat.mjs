@@ -62,6 +62,18 @@ const DISALLOWED_TOOLS = Array.isArray(chatCfg.disallowedTools)
   : ['Bash(git push:*)', 'Bash(rm:*)'];
 const TIMEOUT_MS = Math.max(1, Number(chatCfg.timeoutMinutes || 15)) * 60_000;
 const MAX_CONCURRENT = Math.max(1, Number(chatCfg.maxConcurrent || 3));
+// Which account pays. `claude` bills to a metered API key when one is in the environment and to
+// the signed-in subscription otherwise — a distinction a chat window must not make by accident,
+// because a stray export in a shell profile would silently move every turn onto pay-per-token.
+// Default: keep the key out of the child's environment. Set "api" to opt into metered billing.
+const BILLING = chatCfg.billing === 'api' ? 'api' : 'subscription';
+const KEY_VARS = ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN'];
+function childEnv() {
+  if (BILLING === 'api') return process.env;
+  const env = { ...process.env };
+  for (const k of KEY_VARS) delete env[k];
+  return env;
+}
 
 // ── thread store ────────────────────────────────────────────────────────────
 // One file, rewritten on change. Threads are small (text + a session id) and a chat log that
@@ -180,7 +192,7 @@ function startRun({ channel, prompt, cwd, agent }) {
   for (const tool of ALLOWED_TOOLS) args.push('--allowedTools', tool);
   for (const tool of DISALLOWED_TOOLS) args.push('--disallowedTools', tool);
 
-  const proc = spawn('claude', args, { cwd, stdio: ['pipe', 'pipe', 'pipe'] });
+  const proc = spawn('claude', args, { cwd, env: childEnv(), stdio: ['pipe', 'pipe', 'pipe'] });
   const runId = randomBytes(8).toString('hex');
   const run = { channel, proc, listeners: new Set(), events: [], done: false };
   runs.set(runId, run);
@@ -327,6 +339,7 @@ const server = createServer(async (req, res) => {
     return sendJson(res, 200, {
       ok: true, root: ROOT, permissionMode: PERMISSION_MODE, model: MODEL || 'default',
       version: config.version || '', threads: Object.keys(threads).length,
+      billing: BILLING, keyInEnv: KEY_VARS.some((k) => !!process.env[k]),
     });
   }
 
@@ -446,6 +459,9 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log(`\n  💬 Chat runtime for ${config.company?.name || 'the base'}`);
   console.log(`     ${url}`);
   console.log(`     permission mode: ${PERMISSION_MODE}${DISALLOWED_TOOLS.length ? ` · denied: ${DISALLOWED_TOOLS.join(', ')}` : ''}`);
+  const keyed = KEY_VARS.filter((k) => !!process.env[k]);
+  console.log(`     billing: ${BILLING === 'api' ? 'metered API key' : 'your signed-in Claude subscription'}`
+    + (keyed.length ? (BILLING === 'api' ? ` (${keyed[0]} passed through)` : ` (${keyed.join(', ')} withheld from turns)`) : ''));
   console.log('     Ctrl-C to stop.\n');
   if (OPEN) {
     const opener = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';

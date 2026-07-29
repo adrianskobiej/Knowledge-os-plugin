@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.37.0
+
+- **Chat turns run on your subscription, and that is now enforced rather than assumed.** `claude`
+  bills to a metered API key whenever one is in its environment and to the signed-in account
+  otherwise. A single `export ANTHROPIC_API_KEY` in a shell profile would therefore move every chat
+  turn onto pay-per-token silently — the difference showing up on an invoice weeks later. The
+  runtime withholds those variables from the turns it starts instead of inheriting them. Opt into
+  metered billing deliberately with `"billing": "api"` under `chat`.
+- **The two facts that decide what a careless sentence costs are on screen.** Under the channel
+  list: who pays, what the agent may do without asking, and — when a key is present but withheld —
+  that too. Nothing about billing or permissions should have to be remembered.
+
 ## 0.36.0
 
 - **Channels for your projects, not just for the base.** A channel is now a place to talk *and* a

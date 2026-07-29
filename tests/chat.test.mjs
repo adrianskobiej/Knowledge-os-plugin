@@ -154,6 +154,39 @@ test('a hand-made channel can be, and takes its transcript with it', async () =>
   assert.ok(!(await channels()).some((c) => c.id === made.id));
 });
 
+// ── billing ─────────────────────────────────────────────────────────────────
+// `claude` bills to an API key when one is in its environment and to the signed-in subscription
+// otherwise. A stray export in a shell profile would therefore move every chat turn onto
+// pay-per-token without anyone noticing, so the runtime withholds the key rather than inheriting it.
+
+test('reports that turns run on the subscription', async () => {
+  const s = await (await fetch(`${BASE}/api/ping?t=${token}`)).json();
+  assert.equal(s.billing, 'subscription');
+  assert.equal(s.keyInEnv, false);
+});
+
+test('an API key in the environment is reported, not adopted', async () => {
+  const port = PORT + 1;
+  const child = spawn(process.execPath, [join(base, 'scripts', 'kb-chat.mjs'), '--port', String(port)],
+    { cwd: base, stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, ANTHROPIC_API_KEY: 'sk-ant-not-a-real-key' } });
+  try {
+    const tok = await new Promise((ok, fail) => {
+      let out = '';
+      const timer = setTimeout(() => fail(new Error('runtime did not start: ' + out)), 10_000);
+      child.stdout.on('data', (c) => {
+        out += c;
+        const m = out.match(/\?t=([a-f0-9]+)/);
+        if (m) { clearTimeout(timer); ok(m[1]); }
+      });
+      child.on('error', fail);
+    });
+    const s = await (await fetch(`http://127.0.0.1:${port}/api/ping?t=${tok}`)).json();
+    assert.equal(s.keyInEnv, true, 'the key should be visible to the runtime');
+    assert.equal(s.billing, 'subscription', 'but must not become the billing path');
+  } finally { try { child.kill('SIGTERM'); } catch { /* already gone */ } }
+});
+
 test('a turn for a channel that does not exist never reaches the agent', async () => {
   const r = await fetch(`${BASE}/api/send?t=${token}`, {
     method: 'POST', headers: { 'content-type': 'application/json' },

@@ -95,11 +95,23 @@ refusals for cross-site requests and non-loopback `Host` headers. The default pe
 denied. Tune it under `chat` in `knowledge.config.json`:
 
 ```json
-"chat": { "port": 4319, "permissionMode": "acceptEdits", "disallowedTools": ["Bash(git push:*)"] }
+"chat": { "port": 4319, "permissionMode": "acceptEdits", "billing": "subscription",
+          "disallowedTools": ["Bash(git push:*)"] }
 ```
 
 `"permissionMode": "bypassPermissions"` removes every gate. It works, and it is the setting to
 think twice about — anything you type into that window can then run unattended.
+
+**Billing.** Turns run on the Claude account you are signed into. `claude` bills to a metered API
+key whenever one is in its environment, so a stray `export ANTHROPIC_API_KEY` would quietly move
+every chat turn onto pay-per-token; the runtime withholds those variables from the turns it starts.
+Set `"billing": "api"` to opt into metered billing on purpose. Who pays is shown under the channel
+list, next to the permission mode.
+
+**History** lives in two places, both on your machine: `.kb-chat/threads.json` (what the viewer
+shows) and Claude Code's own session store under `~/.claude/projects/<folder>/<session>.jsonl` —
+the same store the terminal uses, so `claude --resume <session-id>` picks a chat thread up where
+you left it, and a terminal session can be continued in the viewer.
 
 ### Use it from your AI agent
 
