@@ -2,11 +2,12 @@
 // Zero dependencies; every function is total — it returns an empty/neutral value rather than
 // throwing, because a hook that throws is a hook that breaks someone's session.
 
-import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { dirname, join, sep } from 'node:path';
 
 const HOME = process.env.HOME || process.env.USERPROFILE || '';
 const MAX_TRANSCRIPT_BYTES = 24 * 1024 * 1024; // beyond this, parsing costs more than the nudge is worth
+const NUDGE_STATE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Parse the hook payload Claude Code writes to stdin. `{}` when there is nothing to read. */
 export function readHookInput() {
@@ -104,6 +105,37 @@ export function filesWritten(rows) {
 /** True when the session already wrote into one of the bases — the signal that capture happened. */
 export function wroteToBase(files, bases) {
   return files.some((f) => bases.some((b) => f === b || f.startsWith(b.endsWith(sep) ? b : b + sep)));
+}
+
+// ── Nudge bookkeeping ────────────────────────────────────────────────────────
+// The reminder must repeat on a cadence without repeating every turn, and "have I already
+// nudged?" cannot be read off the transcript. It is one small file per session: cheap to write,
+// pruned on every write, and its loss only costs one extra reminder. Deriving the cadence from
+// the turn count alone (fire when `turns % N === 0`) looks stateless but silently does nothing
+// for a whole session as soon as the count steps over the trigger value.
+
+const nudgeDir = () => join(HOME, '.config', 'knowledge-os', 'nudge');
+const nudgeFile = (key) => join(nudgeDir(), `${String(key).replace(/[^\w-]/g, '_').slice(-64)}.json`);
+
+/** Turn count at the last nudge for this session; `-Infinity` when it has never fired. */
+export function lastNudgeTurn(key) {
+  try {
+    const n = JSON.parse(readFileSync(nudgeFile(key), 'utf8')).turn;
+    return Number.isFinite(n) ? n : -Infinity;
+  } catch { return -Infinity; }
+}
+
+/** Record a nudge, and drop bookkeeping for sessions that ended over a week ago. */
+export function recordNudge(key, turn) {
+  try {
+    mkdirSync(nudgeDir(), { recursive: true });
+    writeFileSync(nudgeFile(key), JSON.stringify({ turn }));
+    const cutoff = Date.now() - NUDGE_STATE_TTL_MS;
+    for (const f of readdirSync(nudgeDir())) {
+      const p = join(nudgeDir(), f);
+      try { if (statSync(p).mtimeMs < cutoff) rmSync(p); } catch { /* raced with another session */ }
+    }
+  } catch { /* bookkeeping is best-effort — a lost write costs one extra reminder */ }
 }
 
 /** Spool directory for undistilled session notes. Skipped by reindex (leading `_`). */

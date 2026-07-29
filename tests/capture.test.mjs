@@ -77,6 +77,33 @@ test('nudge: fires on a long session that saved nothing, stays silent on a short
   assert.match(long, /nothing has been saved to the knowledge base/);
 });
 
+test('nudge: fires past the threshold even when the turn count steps over it', () => {
+  // Regression: an exact-equality trigger ((turns - 10) % 15 === 0) went silent for a whole
+  // session as soon as the count skipped the trigger value — 11 turns nudged nobody.
+  const { home } = scaffold();
+  const out = runHook('kb-capture-nudge.mjs', home, { session_id: 's1', transcript_path: transcript(home, { turns: 11 }) });
+  assert.match(out, /nothing has been saved to the knowledge base/);
+});
+
+test('nudge: does not repeat every turn once it has fired', () => {
+  const { home } = scaffold();
+  const first = runHook('kb-capture-nudge.mjs', home, { session_id: 's2', transcript_path: transcript(home, { turns: 12 }) });
+  assert.match(first, /nothing has been saved/);
+
+  const next = runHook('kb-capture-nudge.mjs', home, { session_id: 's2', transcript_path: transcript(home, { turns: 13 }) });
+  assert.equal(next.trim(), '', 'silent one turn later');
+
+  const later = runHook('kb-capture-nudge.mjs', home, { session_id: 's2', transcript_path: transcript(home, { turns: 27 }) });
+  assert.match(later, /nothing has been saved/, 'fires again a cadence later');
+});
+
+test('nudge: one session having fired does not silence another', () => {
+  const { home } = scaffold();
+  runHook('kb-capture-nudge.mjs', home, { session_id: 'a', transcript_path: transcript(home, { turns: 12 }) });
+  const other = runHook('kb-capture-nudge.mjs', home, { session_id: 'b', transcript_path: transcript(home, { turns: 12 }) });
+  assert.match(other, /nothing has been saved/);
+});
+
 test('nudge: a session that already wrote to the base is never nudged', () => {
   const { home, base } = scaffold();
   const path = transcript(home, { turns: 10, writes: [join(base, 'projects', 'x.md')] });
