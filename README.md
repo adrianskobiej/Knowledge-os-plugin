@@ -37,6 +37,7 @@ Most tools optimize for one and bolt the other on. And whatever you pick is usua
 write    → add a .md article (or drop raw notes in raw/ and let the agent compile them)
 reindex  → node scripts/reindex.mjs        rebuilds INDEX.md + kb-data.js
 read     → open viewer.html (human)  ·  read INDEX.md (LLM)
+ask      → ./kb chat                       viewer + a live agent, on localhost (optional)
 deploy   → commit + push to your company repo
 ```
 
@@ -59,6 +60,69 @@ git init
 node scripts/reindex.mjs            # build INDEX.md + kb-data.js
 open viewer.html                    # browse it (macOS; use your OS's open command otherwise)
 ```
+
+### Chat with the base (optional)
+
+The viewer is a file: you open it, you read, you close it. `./kb chat` adds the other half — it
+serves the same viewer from `127.0.0.1` with a **💬 Chat** view, and puts a real Claude Code session
+behind it, running inside the base. Every skill, assistant and connector that answers in your
+terminal answers here too.
+
+```bash
+./kb chat            # reindex, start the runtime, open the viewer at the URL it prints
+```
+
+One resumable session per channel, transcripts kept in `.kb-chat/`. Channels come from three places:
+
+| Channel | Where it comes from | Agents run in |
+|---|---|---|
+| **Base** | always there | the base |
+| one per assistant | each card in `assistants/` | the base |
+| one per project | a `projects/` article — its folder is found, or set with `folder: ~/code/thing` | that folder, base attached |
+| yours | `+ New channel` in the viewer | any folder you point it at |
+
+You rarely need to write `folder:`. Claude Code records every directory it has worked in, and the
+runtime binds a project to one when the names match exactly (a leading or trailing `strona` / `app`
+/ `website` is ignored — that is how folders get named, not projects). Only exact matches bind:
+aiming an agent at the wrong repository is worse than leaving the room unmade. `+ New channel`
+lists the rest for one-click adding.
+
+In a project channel the agent works on the real files *and* keeps the base as a second working
+directory — same assistant, same context, wherever it is standing. Type `@` in any room to summon
+someone from the roster; the message goes out as written and the base's mention layer routes it.
+
+Without the runtime the viewer stays exactly what it was — offline and read-only.
+
+Because the runtime executes an agent on your machine, it is deliberately narrow: loopback only, a
+fresh token per start (carried in the URL, and injected into the viewer's `kb-data.js` request so
+the file with every article in it is not readable by a page that merely guessed the port), and
+refusals for cross-site requests and non-loopback `Host` headers. The default permission mode is
+`acceptEdits` — writes to the base go through, shell commands do not, and `git push` / `rm` are
+denied. Tune it under `chat` in `knowledge.config.json`:
+
+```json
+"chat": { "port": 4319, "permissionMode": "acceptEdits", "billing": "subscription",
+          "disallowedTools": ["Bash(git push:*)"] }
+```
+
+`acceptEdits` lets an agent write files but stops every shell command, which on its own is too tight
+for a base whose own workflow *is* shell. So the default also allows the shell that cannot destroy
+anything — reading, searching, git's read-only verbs, `node scripts/*` — while `git push` and `rm`
+stay denied. Replace the whole set with `allowedTools` if you want a different line.
+
+`"permissionMode": "bypassPermissions"` removes every gate. It works, and it is the setting to
+think twice about — anything you type into that window can then run unattended.
+
+**Billing.** Turns run on the Claude account you are signed into. `claude` bills to a metered API
+key whenever one is in its environment, so a stray `export ANTHROPIC_API_KEY` would quietly move
+every chat turn onto pay-per-token; the runtime withholds those variables from the turns it starts.
+Set `"billing": "api"` to opt into metered billing on purpose. Who pays is shown under the channel
+list, next to the permission mode.
+
+**History** lives in two places, both on your machine: `.kb-chat/threads.json` (what the viewer
+shows) and Claude Code's own session store under `~/.claude/projects/<folder>/<session>.jsonl` —
+the same store the terminal uses, so `claude --resume <session-id>` picks a chat thread up where
+you left it, and a terminal session can be continued in the viewer.
 
 ### Use it from your AI agent
 

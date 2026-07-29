@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.40.0
+## 0.41.0
 
 - **The capture loop stops depending on good intentions.** A base only beats a memoryless chat if
   things actually reach it, and until now the whole mechanism was one paragraph of prose asking the
@@ -33,6 +33,120 @@
   `"orchestrator": "<agent short name>"`; the same hook states once per session that work routes
   through that agent unless the user names another or is only asking a question. Omit the key and
   nothing is injected.
+
+## 0.40.0
+
+- **The channel list stopped being a wall.** A base with a real roster renders 26 assistants before
+  anything else, so projects and your own channels were pushed off screen and the list became
+  something to scroll rather than use. Groups collapse now, each showing its count, and Assistants
+  starts closed — the whole list fits on one screen again.
+- **A search box, because you know who you want.** Two letters filter every channel by name, agent
+  or folder; collapsed groups open themselves while filtering (a hidden match is the same as no
+  match), empty ones disappear, and Enter opens the first hit. Escape clears.
+- **What is open is remembered**, and the group holding the channel you are in is never closed on
+  you — arriving somewhere you cannot see is worse than a long list.
+
+## 0.39.0
+
+- **Project channels find their own folders.** Writing `folder:` into seventeen articles is work
+  nobody should do when the answer is already on the machine: Claude Code records every directory
+  it has worked in. The runtime reads those directory keys — nothing else in that config is any of
+  its business — and binds a project to a folder when the names match exactly. On a real base that
+  filled six rooms with no configuration at all: `~/Klishio` → Klishio, `~/Strona AI EDU` → AI EDU,
+  `~/Strona nanas.pro` → nanas.pro, `~/adrianskobiej.pl`, `~/SellnRise`, `~/knowledge-os`.
+- **Exact matches only, on purpose.** Fuzzy matching would have paired "Nanas prompter" with
+  nanas-cleaner or nanas-pro, and pointing an agent at the wrong repository is worse than not
+  offering the room at all. A leading or trailing `strona` / `app` / `website` is dropped first,
+  because that is how a person names a folder, not part of the project's name. An explicit
+  `folder:` still wins, and two candidates for one project bind nothing.
+- **`+ New channel` is a picker, not a path prompt.** The folders Claude Code knows are listed with
+  one click each, the ones already used are marked rather than hidden — seeing that a project is
+  covered is as useful as seeing that it is not — and typing a path stays as the fallback.
+
+## 0.38.0
+
+- **`acceptEdits` alone was too tight to be useful.** It lets an agent write files and stops every
+  shell command — but a knowledge base *is* shell: `node scripts/reindex.mjs` rebuilds it, and an
+  assistant asked about the board reaches for `git log` or `grep` before it answers. Run against a
+  real base, the first question came back as a polite refusal: two ways to read the board, both
+  denied. A blocked agent does not fail loudly, it explains why it cannot help, which is worse than
+  either working or refusing outright. The default now grants the shell that cannot destroy
+  anything — reading, searching, git's read-only verbs, and the base's own scripts — and `git push`
+  / `rm` stay denied. Override the whole set with `allowedTools`.
+- **Answers read as paragraphs again.** Each turn of the agentic loop arrives as its own text
+  block; concatenated raw they ran into each other mid-sentence ("…dam znać.Sprawdzam tablicę.").
+  Blocks are now joined as paragraphs, in the stream and in the stored transcript.
+- **Avatars tell people apart.** A single initial collapses a real roster — Apelles, Argos, Ariadna
+  and Atlas all became "A". Two letters plus a hue derived from the whole name keeps 26 assistants
+  distinguishable at a glance, and stable across reloads.
+
+## 0.37.0
+
+- **Chat turns run on your subscription, and that is now enforced rather than assumed.** `claude`
+  bills to a metered API key whenever one is in its environment and to the signed-in account
+  otherwise. A single `export ANTHROPIC_API_KEY` in a shell profile would therefore move every chat
+  turn onto pay-per-token silently — the difference showing up on an invoice weeks later. The
+  runtime withholds those variables from the turns it starts instead of inheriting them. Opt into
+  metered billing deliberately with `"billing": "api"` under `chat`.
+- **The two facts that decide what a careless sentence costs are on screen.** Under the channel
+  list: who pays, what the agent may do without asking, and — when a key is present but withheld —
+  that too. Nothing about billing or permissions should have to be remembered.
+
+## 0.36.0
+
+- **Channels for your projects, not just for the base.** A channel is now a place to talk *and* a
+  folder to talk in. Give a `projects/` article a `folder:` and it becomes a room whose agents run
+  in that directory — reading the real code, editing the real files. Anything else gets a channel
+  you make yourself in the viewer (`+ New channel`), stored in `.kb-chat/channels.json`.
+- **The base comes along.** A turn outside the base is started with the base attached as a second
+  working directory, so an assistant in a project room is the same assistant it is at home: same
+  context, same conventions, same memory. Without that, a project channel would only be a second
+  terminal.
+- **Summon anyone, anywhere.** Typing `@` in any room opens the roster (arrows, Enter, Escape); the
+  message goes out as written and the base's own mention layer does the routing. A `@name` you type
+  always beats the channel's default — summoning someone into a room is the point of a room.
+- **Replies are signed by whoever answered.** In a project channel the room is the project, so
+  crediting every reply to the room would lose the one thing worth knowing. Who was addressed is
+  recorded next to what was said, and survives a reload.
+- **The runtime owns the channel list.** Only the server may decide which folder an agent runs in,
+  so the viewer renders what it is told rather than inventing it. A folder is checked when the
+  channel is made — exists, is a directory, is not the filesystem root — because a typo should fail
+  at that moment and not halfway through a turn. Derived channels cannot be deleted from a chat
+  window; the article behind them is the base's business.
+- **Pixel-art chat.** The 💬 view honours the pixel skin like every other: bitmap display font on
+  the chrome, 8-bit avatars with hard shadows, the log on the console's own grid, and a blinking
+  block after the last answer. Colour still carries the meaning; only the form goes blocky.
+
+## 0.35.0
+
+- **`./kb chat` — the viewer talks back.** Reading the base was always only half the loop: the
+  other half is asking, and asking meant closing the viewer and opening a terminal.
+  `scripts/kb-chat.mjs` is a zero-dependency localhost runtime that serves the viewer and puts a
+  real Claude Code session behind it — running *in* the base, so every skill, assistant, connector
+  and instruction file that answers in the terminal answers here too. Nothing is re-implemented;
+  the runtime only carries text in and events out.
+- **A channel per assistant, a thread per conversation.** Channels are derived from the base
+  itself — one per card in `assistants/`, plus a general one — so a roster is never configured
+  twice. Each channel keeps its own Claude Code session id and resumes it on the next message,
+  which is what makes the second question able to refer to the first. Transcripts live in
+  `.kb-chat/` and survive a restart; "start fresh" forgets the session, not what was said.
+- **The agent is named by mention, not by flag.** A message in an assistant's channel is prefixed
+  with `@<name>` and handed over as-is, so whichever mention layer the base already has decides who
+  answers. The routing rule stays in one place instead of being copied into a server.
+- **A port on localhost is not private, and this one runs an agent.** Every start mints a fresh
+  token that travels in the URL; the viewer's own `<script src="kb-data.js">` is rewritten to carry
+  it, or the one file holding every article would be readable by any page that guessed the port.
+  Requests are refused when the token is missing, when `Sec-Fetch-Site` says another site is
+  asking, and when the `Host` header is not loopback — that last one is what stops DNS rebinding,
+  where the browser sends your token to an attacker's hostname pointed at 127.0.0.1.
+- **Safe by default, loud about it.** The default permission mode is `acceptEdits`: writing to the
+  base needs no ceremony, but shell commands still stop at the gate, and `git push` / `rm` are
+  denied outright. Both are `chat` settings in `knowledge.config.json` — including
+  `bypassPermissions`, which is documented rather than hidden, because a chat window that can do
+  anything should be a decision someone made on purpose.
+- **Offline stays the default.** Without the runtime the viewer is exactly what it was — a file you
+  open, read-only — and the Chat view explains how to start the runtime rather than pretending to
+  be live.
 
 ## 0.34.0
 
