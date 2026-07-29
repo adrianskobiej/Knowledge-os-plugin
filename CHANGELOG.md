@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.35.0
+## 0.40.0
 
 - **The capture loop stops depending on good intentions.** A base only beats a memoryless chat if
   things actually reach it, and until now the whole mechanism was one paragraph of prose asking the
