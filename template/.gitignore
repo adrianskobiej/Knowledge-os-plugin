@@ -53,6 +53,11 @@
 # including paginated pages <zone>/INDEX.pN.md for very large zones.
 /*/INDEX*.md
 
+# 4b) _pending/ is deliberately absent from the whitelist above. It holds raw session spools
+#     (verbatim prompts, paths) written by the SessionEnd capture hook — local working material
+#     awaiting distillation, not knowledge. Do not re-allow it: that would push raw transcripts
+#     of one person's sessions to everyone with the remote.
+
 # 5) OS / tooling junk.
 .DS_Store
 node_modules/

@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.40.0
+
+- **The capture loop stops depending on good intentions.** A base only beats a memoryless chat if
+  things actually reach it, and until now the whole mechanism was one paragraph of prose asking the
+  agent to save what it learned. Prose loses: the rule lived in the base's own `AGENTS.md`, which a
+  session working in a *project* never loads, and even where it was loaded it had scrolled thousands
+  of tokens out of attention by the time the session had anything worth keeping. Three layers now
+  back it up, deliberately redundant — each catches what the one before it missed.
+- **Layer 1 — the rule travels.** The managed block `install.mjs` writes into every tool's global
+  instruction file carries the capture rule itself, not just "a base exists, here is where". It is
+  four sentences: save durable knowledge the moment it appears rather than at a stopping point that
+  may never come, and an explicit list of what does *not* belong (the task's own steps, anything git
+  already records, whatever is only true today). Short on purpose — this text is paid for at the
+  start of every session in every project.
+- **Layer 2 — `kb-capture-nudge` (UserPromptSubmit).** Re-states the rule mid-session, but only when
+  warranted: the session is long enough to have produced something durable *and* has written nothing
+  into a base. A session that is already capturing is never interrupted; a short one is not either.
+  It then repeats on a cadence rather than every turn, so a session with genuinely nothing to save
+  is nudged a few times, not fifty.
+- **Layer 3 — `kb-session-capture` (SessionEnd).** Assumes the first two failed. When a substantive
+  session ends having saved nothing, the raw material — the prompts, the files touched — is spooled
+  to `<base>/_pending/`, and the first prompt of the next session reports the backlog. This layer
+  deliberately does not write knowledge: a spool is undistilled material to be turned into an article
+  and deleted, or deleted unread. `_pending/` is skipped by reindex and stays outside the `.gitignore`
+  whitelist, so raw transcripts of one person's sessions never reach the index, the viewer, or a
+  teammate's clone.
+- **Duplication is designed out.** Every layer keys off the same fact — whether the session has
+  written into a base. That is what makes redundancy safe: layers 2 and 3 go quiet the moment layer 1
+  does its job, instead of each leaving its own copy for someone to reconcile later.
+- **A default orchestrator, since Claude Code has none.** `knowledge.config.json` accepts
+  `"orchestrator": "<agent short name>"`; the same hook states once per session that work routes
+  through that agent unless the user names another or is only asking a question. Omit the key and
+  nothing is injected.
+
 ## 0.34.0
 
 - **`/kb-forget` — retract, don't just delete.** Removing an article with `rm` was always the easy

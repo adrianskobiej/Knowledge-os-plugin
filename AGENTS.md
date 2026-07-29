@@ -21,6 +21,10 @@ designed to be **tool-agnostic** — usable from Claude Code, Codex, Antigravity
 - `install.mjs` — cross-platform installer; adapts commands + sets up global awareness.
   Run `node install.mjs --dry-run` to preview.
 - `hooks/` + `scripts/kb-autoindex.mjs` — Claude-only PostToolUse auto-reindex.
+- `scripts/kb-capture-nudge.mjs` (UserPromptSubmit) · `scripts/kb-session-capture.mjs` (SessionEnd)
+  — the capture loop's automated layers: re-state the capture rule in a long session that has saved
+  nothing, and spool the raw material of a substantive session that ended having saved nothing to
+  `<base>/_pending/`. Shared helpers in `scripts/lib/kb-hook-lib.mjs`.
 - `.claude-plugin/` — Claude Code plugin + marketplace manifest.
 
 ## Invariants — keep these true when editing

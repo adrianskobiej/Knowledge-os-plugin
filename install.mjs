@@ -154,6 +154,8 @@ project's goal, status and the hard ⛔ non-goals for agents. Projects can be wi
 
 The base stores ONLY distilled knowledge (decisions, processes, facts, people) as Markdown — it is NOT a project store. Never move, copy, or commit project source code or whole files into it; keep working in each project's own location and only save knowledge here.
 
+**Capture — write back what you learn, without being asked.** A session ends and its context is gone; only what reached the base survives. So when work produces something durable — a decision and the reason behind it, a fact about a client or project, a correction of something the base has wrong, a dead end worth not repeating — save it AT THAT MOMENT (refine the relevant article in place, or add a short new one), not at some later stopping point that may never come. What does NOT belong: this task's steps, anything the repo or git history already records, and knowledge that is only true for today's conversation.
+
 When the user asks about something that may be stored there, consult it: read \`<base>/INDEX.md\` first, then open only the relevant \`.md\` files (follow \`[[slug]]\` links) — never load the whole base. When the user shares durable, reusable knowledge worth keeping, distill it into a short \`.md\` article in the base and run \`node scripts/reindex.mjs\` there afterwards. Full rules live in \`<base>/AGENTS.md\`.
 ${MARK_END}`;
 }

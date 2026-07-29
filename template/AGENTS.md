@@ -328,6 +328,31 @@ durable bits back — cheaply:
 - One line in `wiki/log/log-<author>.md` per change. At the end of a working session, briefly
   propose what's worth persisting, then capture it on an OK.
 
+**Capture in flight, not at the end.** A session's context dies with the session; only what reached
+the base survives. Save the moment something durable appears — do not queue it for a stopping point
+that may never arrive. What does NOT belong: the steps of the task itself, anything the repo or git
+history already records, and knowledge that is only true for this conversation.
+
+Under Claude Code three layers back this up, and they are meant to be redundant — each catches what
+the one before it missed:
+
+| Layer | Where | Catches |
+| --- | --- | --- |
+| the rule above, in the global instruction file | every session, every directory | knowledge at the moment it appears — the richest capture, because the context is still there |
+| `kb-capture-nudge` (UserPromptSubmit) | long sessions with no base write yet | the rule having scrolled out of the model's attention |
+| `kb-session-capture` (SessionEnd) | substantive sessions that saved nothing | total failure of the two above |
+
+The last one does not write knowledge — it spools raw material (the prompts, the files touched) to
+`_pending/`, and the first prompt of the next session reports the backlog. Distil a spool into a
+real article and delete it; delete it unread if the session held nothing durable. `_pending/` is
+skipped by reindex and git-ignored, so it never reaches the index, the viewer, or a teammate's clone.
+A session that already saved to the base spools nothing.
+
+**Default orchestrator.** `knowledge.config.json` may carry `"orchestrator": "<agent short name>"`.
+Claude Code has no setting for a default agent, so the same hook states it once per session: work
+(deliverables, file changes, multi-step tasks) routes through that agent unless the user names
+another or is simply asking a question. Omit the key and no routing line is injected.
+
 ## Feature toggles (respect the company's choices)
 
 `knowledge.config.json` may carry `"features"`, e.g. `{ "journal": false, "goals": "professional" }`.
