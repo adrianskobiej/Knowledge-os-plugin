@@ -71,6 +71,19 @@ SAME rules. Regardless of which agent you are:
 
 - **Know the user first.** Read the owner / primary-user profile in `people/` (goals, active
   projects, stack, working style) before acting — it's the context every agent should have.
+- **Write for a first-time reader who cannot ask you a follow-up.** The rule covers a chat reply
+  as much as a report or an article, in whatever language you answer in, and it is checked on the
+  finished text. The reader must be able to point at the sentence that breaks it. Every sentence
+  has a verb, and a heading may stay a fragment only if the sentence right below it says the same
+  thing in full. Every abbreviation and every named concept ("activation point", "CAC") is expanded
+  at its FIRST use and in the SAME sentence, not in a footnote or a glossary at the end, and after
+  that you use it freely. Jargon is precise and welcome, and only introducing it unexplained is
+  banned. A technical sentence is followed by one that says what it means in practice. Every number
+  carries its reading, meaning what it is large or small against and what follows from it. A table
+  is introduced by a sentence saying what the reader will see in it and closed by a sentence saying
+  what follows from it, and its cells are sentences or numbers with units, not bare nouns. A table
+  adds to the explanation and never replaces it, so with the table deleted the text still explains
+  the thing in full.
 - **New project = a structured article.** When a new project appears, create
   `projects/<slug>.md` from `_templates/project.md`. It MUST carry: **What it is**, **Goal**,
   **Status**, repo/dir/URL, **✅ in-scope (how agents should help)** and
